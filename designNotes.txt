@@ -1,0 +1,57 @@
+Design notes
+
+
+1) it should be notelist-based; notelists are the glue 
+
+2) everything that makes more than one note, makes a notelist. the object wraps and extends the notelist. The noteList is named “notes”.
+	Key is set, then recalculates its nl
+	Chord is set; recalculates
+	TunedHand is set, recalculates
+
+3) Operations in the service of composition are like string manipulation.
+	pattern matching, pattern enforcement, concatenation, superimposition. 
+
+4) I guess that one way to interesting composition could be: of starting with simple patterns, mixing them, combining them, and gradually imposing greater and greater order upon them 
+
+5) You'll want to try all kinds of composition methods, so they should not be part of the core class set. 
+
+6) The motif will be a basis for composition. It is a notelist, generated from a key or chord, and a “exLine”, which provides time patterns (rhythms) and maps key/chords onto time. 
+
+7) The tunedHand represents a stringed instrument. It gives a set of strings with a tuning, and maps notes onto the instrument. Keys/chords/motifs generate notes, tunedHands filter them, in a way. 
+
+
+To make a composition
+
+Make a key
+make a tunedHand
+make some lines, 2 or 3
+make a few motifs, 
+
+use the motifs to make notelists -- ?
+concatenate the noteLists
+use the tunedHand to ensure playability. 
+display
+
+
+To make a comosition
+
+make a key
+make tuned hand
+make several lines
+use the tuned hand to cast notes into the lines-> motifs
+give the motifs to a playbacker-> noteList
+display
+
+
+Implementation plan
+
+Don't try to get it all working at once, of course. 
+
+1) Fix note, notelist, tunedhand, key, chord, motif. 
+
+2) Gen a random notelist of 256 notes. 
+
+3) Get exTextTab working to show the notes. 
+
+4) Decide on what exLine will be doing. 
+

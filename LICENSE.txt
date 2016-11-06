@@ -1,0 +1,3 @@
+MIT License. 
+
+Neal McDonald made this library. 
