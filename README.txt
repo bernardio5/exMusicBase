@@ -9,7 +9,7 @@ I am not a trained musician.
 For my thinking on the design, look at designNotes.txt. 
 
 For help on how to use the library, I intend to post a set of web pages in the 
-“examples” directory. I also intend to put test functions into each class. 
+“tests” directory. I also intend to put test functions into each class. 
 
 Help yourself. Let me know if you find a use for it, OK? : )
 
