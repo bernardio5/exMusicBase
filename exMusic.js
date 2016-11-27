@@ -76,13 +76,51 @@ exNote.prototype = {
     },
 
 
+    // not named interval, just the number of semitones, up or down. 
     makeInterval: function(step) { 
         var res = new note();
         res.copy(this);
-        // add code to take interval names
         res.midi = res.midi + step;     
         return res; 
     }, 
+
+
+/* ok, musical theorists: interval naming
+semis   Min/maj/perf    Short   Augmented/dimd     Short  ~Ratio    Other names
+0      Perfect unison    P1  Diminished second       d2    1:1        
+1      Minor second      m2  Augmented unison[5][7]  A1         Semitone,[8] half tone, half step   S   
+2      Major second      M2  Diminished third        d3         Tone, whole tone, whole step        T   
+3      Minor third       m3  Augmented second        A2    6:5    
+4      Major third       M3  Diminished fourth       d4    5:4      
+5      Perfect fourth    P4  Augmented third         A3    4:3 
+6                            Diminished fifth        d5             Tritone[6]                     TT  
+                             Augmented fourth        A4
+7      Perfect fifth     P5  Diminished sixth        d6    3:2      
+8      Minor sixth       m6  Augmented fifth         A5          
+9      Major sixth       M6  Diminished seventh      d7         
+10     Minor seventh     m7  Augmented sixth         A6         
+11     Major seventh     M7  Diminished octave       d8        
+12     Perfect octave    P8  Augmented seventh       A7    2:1      
+and on to chord naming 
+*/
+    makeNamedInterval: function(nm) { 
+        var mmp = ['P1', 'm2', 'M2',  'm3', 'M3', 'P4',  '-&', '-&',  'P5', 'm6', 'M6',  'm7', 'M7', 'P8'];
+        var ad  = ['d2', 'A1', 'd3',  'A2', 'd4', 'A3',  'd5', 'A4',  'd6', 'A5', 'd7',  'A6', 'd8', 'A7']; 
+        var vals= [  0,    1,    2,     3,    4,    5,     6,    6,     7,    8,    9,   10,   11,    12 ]; 
+
+        var i, res, step;       
+        for (i=0; i<14; i=i+1) { 
+            if ((nm==mmp[i]) || (nm==ad[i])) {
+                step = vals[i]; 
+            }
+        }
+        res = new note();
+        res.copy(this);
+        res.midi = res.midi + step;     
+        return res;     
+    },
+
+
 
     report: function() { 
 
@@ -309,14 +347,16 @@ function exKey() {
     this.tonic = 60;  //  Middle C
     this.mode = 0; // major
     this.modes = [
-        [ 0, 2,4, 5,7,9,11 ], // maj
-        [ 0, 2,3, 5,7,8,10 ], // min
+        [ 0, 2,4, 5,7,9,11 ], // major
+        [ 0, 2,3, 5,7,8,10 ], // minor
         [ 0, 2,3, 5,7,9,10 ], // dorian
         [ 0, 2,4, 5,6,10   ], // wholetone
         [ 0, 2,3, 6,7,8,10 ], // "hungarian"
         [ 0, 4,6, 7,11     ], // "chinese"
         [ 0, 1,3, 5,7,9,10 ]  // "javan"
     ];
+    this.mode = 0; // major
+    this.modeLen = 7; // |major|
     this.notes = new exNoteList(); // once the constants are set, this is filed in
 }
 
@@ -326,11 +366,13 @@ exKey.prototype =  {
         var i, md, baseF; 
         baseF = this.tonic %12;
         md = this.modes[this.mode];
+        this.modeLen = this.modes[this.mode].length;
         this.notes.clear();
+
         for (i=0; i<20; i=i+1) { 
-            md.forEach(function(obj, ind, ar) {
-                this.notes.addNew(-1.0, baseF + (i*12));
-            }); 
+            for (j=0; j<this.modeLen; j=j+1) {
+                this.notes.addNew(-1.0, baseF + (i*12) + md[j]);
+            } 
         }
     },
 
@@ -366,7 +408,7 @@ exKey.prototype =  {
     copyStep: function(aNote, steps) { // const exNote aNote, 
         var res = aNote.newCopy();
         var inSteps, octSteps, len, downs, octDowns; 
-        len = this.modes[this.mode].length; 
+        len = this.modeLen; 
         inSteps=0; 
         octSteps=0;
         if (steps>0) { // stepUp, dammit
@@ -503,7 +545,14 @@ function exChord() {
         'm13': [3,7,11,14,17,21], '-13': [3,7,10,14,17,21], 
         '+M13': [4,8,11,14,17,21], '013': [3,6,10,14,17,21]
     };
+
     this.numberNames = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii']; 
+
+    this.available = ['-', 'M', 'm', '+', 'o', 'M6', 'm6',
+        '7', 'M7', 'm7', '+7', 'o7', '0', '07', 'mM7', '+M7', '7+5', 
+        'M9', '9', 'mM9', '-M9', 'm9', '-9', '+M9', '+9', '09', '0f9', 'o9', 'of9', 
+        '11', 'M11', 'mM11', '-M11', 'm11', '-11', '+M11', '+11', '011', 'o11',
+        'M13', '13', 'mM13', '-M13', 'm13', '-13', '+M13', '013']; 
 
     this.recalculate(); 
 }
@@ -1278,9 +1327,6 @@ exTextTab.prototype = {
     plotNote: function(that, note) {
         var x, y, str, whichRow, rowt, rowRow; 
 //debugger;
-        // stopgap: this should happen much higher up. 
-        // the composition should set notes onto the string.
-        that.hand.setANote(note); // use hand to put note on a string/fret
         if ((note.string!=-1)&&(note.t>=0.0)&&(note.t<that.pageDuration)) {
             // which row to put the note on
             whichRow = Math.floor(note.t * that.rowsPerSecond);

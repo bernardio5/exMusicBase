@@ -1,0 +1,25 @@
+<!DOCTYPE html >
+<head>
+	<title>exMusicBase/tests</title>
+	<script type="text/javascript" src="../exMusic.js"></script>  
+	<script type="text/javascript">		
+
+	function redraw() { 
+		var thePre, theHand, tab, theNote, theList, i, midi;
+
+		thePre = document.getElementById("exTabHolder");
+		// thePre.innterHTML = "this is a test."
+
+		// we will generate tab for a guitar, the default
+		theHand = new exTunedHand(); 
+		tab = new exTextTab("test 4: lines for rhythm", theHand, 6.0); 
+		// will put in just a blank page of tab
+		thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
+	}
+
+	</script>
+</head>
+<body  onLoad="redraw();">
+	<div id="exTabHolder"></div>
+</body>
+</html>
