@@ -17,18 +17,18 @@ exNoteList.prototype = {
     },
 
 
-    newCopy = function() { 
+    newCopy: function() { 
         var res = new exNoteList(); 
         res.copy(this);
     },
 
 
-    add = function(nt) { 
+    add: function(nt) { 
         this.ns.push(nt.newCopy()); 
     },
 
 
-    addNCopies = function(n, aNote) {
+    addNCopies: function(n, aNote) {
         var i; 
         for (i=0; i<n; i=i+1) { 
             this.add(aNote); 
@@ -36,7 +36,7 @@ exNoteList.prototype = {
     },
 
 
-    addNew = function(t, md) { 
+    addNew: function(t, md) { 
         var nt = new exNote();
         nt.t = t; 
         nt.MIDI = md;
@@ -44,27 +44,27 @@ exNoteList.prototype = {
     },
 
 
-    length = function() { 
+    length: function() { 
         return this.ns.length; 
     },
 
 
-    nth = function(which) {  
+    nth: function(which) {  
         return this.ns[(which % this.ns.length)]; 
     },
 
 
-    getFirst = function(which) {  
+    getFirst: function(which) {  
         return this.ns[0]; 
     },
 
 
-    concat = function(it) {  // add it to this
+    concat: function(it) {  // add it to this
         this.ns.concat(it); 
     },
 
 
-    selectBy = function(test) {  // return the note for which test returns the lowest number
+    selectBy: function(test) {  // return the note for which test returns the lowest number
         var min, best, aVal;
         min = test(this.ns[0]); 
         it.ns.forEach(function(item, index, array) {
@@ -73,12 +73,12 @@ exNoteList.prototype = {
                 best = index; 
                 min = aVal;
             }
-        }
+        });
         return this.ns[best];
     },
 
 
-    sortBy = function(orderTest) {  // use test to order this
+    sortBy: function(orderTest) {  // use test to order this
         var swap = new exNote; 
         var i, j, bestPlace, len=this.ns.length; 
         // swap sort
@@ -98,7 +98,7 @@ exNoteList.prototype = {
     },
 
 
-    cullBy = function(test) {  // keep only notes for which test is true
+    cullBy: function(test) {  // keep only notes for which test is true
         var i, newLen, len = this.ns.length; 
         var res = [];
         newLen = 0; 
@@ -112,7 +112,7 @@ exNoteList.prototype = {
     },
 
 
-    apply = function(xformer) { // use this.ns[i] = xformer(this.ns[i]) for all
+    apply: function(xformer) { // use this.ns[i] = xformer(this.ns[i]) for all
         var i, len = this.ns.length; 
         for (i=0; i<len; i=i+1) {
             xformer(this.ns[i]);   
@@ -120,7 +120,7 @@ exNoteList.prototype = {
     },
 
 
-    applyIndex = function(xformer) { // use this.ns[i] = xformer(this.ns[i], i) for all
+    applyIndex: function(xformer) { // use this.ns[i] = xformer(this.ns[i], i) for all
         var i, len = this.ns.length; 
         for (i=0; i<len; i=i+1) {
             xformer(this.ns[i], i);   
@@ -128,7 +128,7 @@ exNoteList.prototype = {
     },
 
 
-    applyNoteList = function(xformer, aNoteList) { // use this.ns[i] = xformer(this.ns[i], i, nL) for all
+    applyNoteList: function(xformer, aNoteList) { // use this.ns[i] = xformer(this.ns[i], i, nL) for all
         var i, len = this.ns.length; 
         for (i=0; i<len; i=i+1) {
             xformer(this.ns[i], i, aNoteList);   
@@ -136,7 +136,7 @@ exNoteList.prototype = {
     },
 
 
-    sortByT = function() { // sort this by t
+    sortByT: function() { // sort this by t
         var testerFun = function(n1, n2) { 
             var res = false; 
             if (n1.t<n2.t) { res=true; }
@@ -146,7 +146,7 @@ exNoteList.prototype = {
     },
 
 
-    cullByRange = function(t0, t1) {  // remove 
+    cullByRange: function(t0, t1) {  // remove 
         var testerFun = function(n1) { 
             var res = false; 
             if ((t0<=n1.t)&&(n1.t<=t2)) { res=true; }
@@ -156,25 +156,25 @@ exNoteList.prototype = {
     },
 
 
-    cullByMIDIList = function(listTest, noteList) {  // remove 
+    cullByMIDIList: function(listTest, noteList) {  // remove 
         // cull; only notes in notelist pass
         this.sortByT(); 
         var testerFun = function(n1) { 
             var res = false; 
-            var i, len = 
-            if ((t0<=n1.t)&&(n1.t<=t2)) { res=true; }
+//            var i;
+  //          if ((t0<=n1.t)&&(n1.t<=t2)) { res=true; }
             return res; 
         }
         this.cullBy(testerFun); 
     },
 
 
-    clear = function() { 
+    clear: function() { 
         this.ns = []; 
     },
 
 
-    report = function() { 
+    report: function() { 
         console.log("<noteList>");
         this.apply(function (note, index) { 
             console.log("  index:"+index);
@@ -184,10 +184,10 @@ exNoteList.prototype = {
     },
 
 
-    tester = function() { 
+    tester: function() { 
         // jeez
-    },
+    }
 
 }
 
-module.export = exNoteList;
+//module.export = exNoteList;

@@ -1,0 +1,43 @@
+<!DOCTYPE html >
+<head>
+	<title>exMusicBase/tests</title>
+	<script type="text/javascript" src="../exMusic.js"></script>  
+	<script type="text/javascript">		
+
+	function redraw() { 
+		var thePre, theHand, tab, theNote, theList, i, midi;
+
+		thePre = document.getElementById("exTabHolder");
+		// thePre.innterHTML = "this is a test."
+
+		// we will generate tab for a guitar, the default
+		theHand = new exTunedHand(); 
+		tab = new exTextTab("test 1: plot fret plucks in succession; tests exTextTab, exNoteLists & exTunedHand", theHand, 6.0); 
+		// will put in just a blank page of tab
+		// thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
+
+		theNote = new exNote(); 
+		theList = new exNoteList(); 
+
+		for (i=0; i<128; i=i+1) {
+			// test for plotting: uncomment out these, comment out line 34
+			//tab.plot(i, i, '*');
+			//tab.plot(i+50, i, '****');
+
+			midi = 40 + (i %30); 
+			theNote.midi = midi;
+			theNote.t = i * 0.666;
+
+			theList.add(theNote); 
+		}
+
+		tab.plotNoteList(theList); 
+		thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
+	}
+
+	</script>
+</head>
+<body  onLoad="redraw();">
+	<div id="exTabHolder"></div>
+</body>
+</html>

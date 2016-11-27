@@ -28,7 +28,7 @@ function exTextTab(titleStr, tunedHand, tilesPerSecond) {
 
 exTextTab.prototype = { 
     // str and fill are strings. add fills to str until its length is len.
-    fillout = function(str, fill, len) { 
+    fillout: function(str, fill, len) { 
         var i, inLen, fillLen, res; 
         inLen = str.length; 
         fillLen = fill.length; 
@@ -52,7 +52,7 @@ exTextTab.prototype = {
 
 
     // given an exNote, assuming this page starts at t=0
-    plotNote = function(note) {
+    plotNote: function(note) {
         var x, y, str, whichRow, rowt; 
 
         this.hand.setANote(note); // use hand to put note on a string/fret
@@ -108,6 +108,4 @@ exTextTab.prototype = {
     }
 
 }
-
-module.export = exTextTab; 
 
