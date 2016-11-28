@@ -1,5 +1,6 @@
 Design notes
 
+0) I'm working in Safari. I am not humoring Chrome or IE. I'll get to firefox. 
 
 1) it should be notelist-based; notelists are the glue 
 
@@ -18,6 +19,27 @@ Design notes
 6) The motif will be a basis for composition. It is a notelist, generated from a key or chord, and a “exLine”, which provides time patterns (rhythms) and maps key/chords onto time. 
 
 7) The tunedHand represents a stringed instrument. It gives a set of strings with a tuning, and maps notes onto the instrument. Keys/chords/motifs generate notes, tunedHands filter them, in a way. 
+
+8) cutting the library into multiple parts adds a preprocessing step that is not pure JS? 
+	I don't want to bind the project to more tools than needed. 
+	I am not a partisan of anything but .js and .html-- I'm sure that grunt is awesome and you need it; I don't. 
+	All the contents of the ".js" folder will be merged into the main exMusic.js-- following the example of jQuery
+
+9) multiple output/presentation methods. 
+	1) using exTabText, which takes a notelist and makes a string in its ".grid"; put that in an HTML <pre>
+	2) using exSpriteClef or exSpriteTab; draw to a canvas with graphics from sprite sheets. 
+	3) sound output, using MIDI or other. 
+
+	all of these methods can be/have been animated to various effects. 
+
+10) the "tests" folder will contain examples of library use in various modes as I get them all working together. The index page will link to the tests after they work. 
+
+11) I've been dinking with this stuff since the 90's; this project combines many abandoned projects. Organizaion in progress. 
+
+12) The "sources" folder contains source material for constants. 
+
+13) _JavaScript: the good parts_ is a good guide, but I don't approve of modifying base objects. 
+
 
 
 To make a composition
