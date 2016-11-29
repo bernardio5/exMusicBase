@@ -1,18 +1,15 @@
 
 
-// WTF fix this shit. use exSpriteCanvas!
-
-
-
-// score.js lets you make a sheet of music, tab or clef. 
+// exSprite.js lets you make a sheet of music, tab or clef. 
 
 // the standard canvas should be 1024x640. Sprites are 16x16. 
-// that gives 64x40 sprites. Tab lines are 7 sprites tall; clef lines are 
+// that gives 64x40 sprites. Tab lines are 7 sprites tall.
 
 
 
 
-////////////////// exScoreLine draws part of a score somewhere, in clef, tab, whatever. 
+////////////////// exSpriteTab draws part of a score somewhere, in tab
+////////////////// exSpriteTab draws part of a score somewhere, 
 // mainly needed, at this time, to know what part of the score to draw on a line. 
 // to know this, the line needs to know its width, duration per width, and which line it is.
 
@@ -23,7 +20,7 @@ var note = require('./exNote');
 var noteList = require('.exNoteList');
 
 
-function exLineTab(aCanvas, score, line, secPerTile, whichLine) {
+function exSpriteTab(aCanvas, score, line, secPerTile, whichLine) {
 	this.ox = 0; // origin
 	this.oy = 0; 
 

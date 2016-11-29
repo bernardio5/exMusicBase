@@ -2,9 +2,47 @@
 <head>
 <title>Exercises/starting</title>
 <link rel="stylesheet" href="../linkHelp/styles.css">
-<script type="text/javascript" src="js/ex.js"></script> 
-<script type="text/javascript" src="js/score.js"></script> 
+<script type="text/javascript" src="../exMusic.js"></script> 
+<script type="text/javascript" src="../exSprite.js"></script> 
 <script type="text/javascript">
+
+    function redraw() { 
+        var thePre, theHand, tab, theNote, theList, i, midi;
+
+        thePre = document.getElementById("exTabHolder");
+        // thePre.innterHTML = "this is a test."
+
+        // we will generate tab for a guitar, the default
+        theHand = new exTunedHand(); 
+        tab = new exTextTab("test 1: plot fret plucks in succession; tests exTextTab, exNoteLists & exTunedHand", theHand, 6.0); 
+        // will put in just a blank page of tab
+        // thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
+
+        theNote = new exNote(); 
+        theList = new exNoteList(); 
+
+        for (i=0; i<128; i=i+1) {
+            // test for plotting: uncomment out these, comment out line 38
+            //tab.plot(i, i, '*');
+            //tab.plot(i+50, i, '****');
+
+            // series of notes, ascending
+            theNote.midi = 40 + (i %30); // roughly the guitar's range
+            theNote.t = i * 0.666;
+            theNote.string = -1; 
+            theNote.fret = -1; 
+
+            theHand.setANote(theNote); // use hand to put note on a string/fret
+
+            theList.add(theNote); 
+        }
+
+        tab.plotNoteList(theList); 
+        thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
+    }
+
+
+
 	var theExercise, theCanvas, isPaused;   
 	
 	function setParameters() { 
@@ -24,7 +62,6 @@
         var exLo = parseInt(document.getElementById('seedLo').value); 
         anin.seed = exHi * 16 + exLo; 
 
-        anin.tuning = parseInt(document.getElementById('tuning').value);
         theExercise = new exErcise(anin);
 	}
 
@@ -47,6 +84,9 @@
 	
 	var startAnimation = function() { 
 		theCanvas = document.getElementById("mainCanvas");
+
+        // just make 50 notes. 
+
 		var anInit = new exErciseInit(); 
         anInit.canvas = theCanvas; 
         isPaused = 0;

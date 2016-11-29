@@ -1,8 +1,4 @@
 
-var exNote = require('./exNote');
-var exNoteList = require('./exNoteList');
-var exSpriteCanvas = require('./exSpriteCanvas');
-
 // Canvas aCanvas, int x0, int y0, int wd, exKey *aKey, float tiles/sec
 function exLineClef(aCanvas, x0, y0, wd, aKey, tilesPerSecond) {
     // more or less constants
