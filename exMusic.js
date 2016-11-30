@@ -353,7 +353,8 @@ function exKey() {
         [ 0, 2,4, 5,6,10   ], // wholetone
         [ 0, 2,3, 6,7,8,10 ], // "hungarian"
         [ 0, 4,6, 7,11     ], // "chinese"
-        [ 0, 1,3, 5,7,9,10 ]  // "javan"
+        [ 0, 1,3, 5,7,9,10 ],  // "javan"
+        [ 0,1,2,3,4,5,6,7,8,9,10,11 ]
     ];
     this.mode = 0; // major
     this.modeLen = 7; // |major|

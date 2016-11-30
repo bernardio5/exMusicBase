@@ -53,8 +53,8 @@ function exSpriteCanvas(aCanvas, tileSetName, x0, y0) {
     // bbox for all draws since last erase-- uses canvas 
     this.minX = x0; 
     this.minY = y0; 
-    this.maxX = x0+20; 
-    this.maxY = y0+20; 
+    this.maxX = x0+2; 
+    this.maxY = y0+2; 
 }
 
 
@@ -138,129 +138,69 @@ exSpriteCanvas.prototype = {
         this.context.beginPath();
         this.context.rect(this.x0 + (this.minX*ts), this.y0+(this.minY*ts), this.maxX*ts, this.maxY*ts);
         this.context.fill();
-        this.minX = 0; 
-        this.minY = 0; 
-        this.maxX = 1; 
-        this.maxY = 1; 
+        this.minX = x0; 
+        this.minY = y0; 
+        this.maxX = x0+1; 
+        this.maxY = y0+1; 
         this.
     },
 }
 
 
 
-////////////////// exSpriteTabRow draws one line? row? of a notelist, in tap
-////////////////// exSpriteTabRow draws one line? row? of a notelist, in tap
-////////////////// exSpriteTabRow draws one line? row? of a notelist, in tap
-////////////////// exSpriteTabRow draws one line? row? of a notelist, in tap
-////////////////// exSpriteTabRow draws one line? row? of a notelist, in tap
+
+
+////////////////// exSpriteTabRow draws one line? row? of a notelist, in tab
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 
 // given am HTML canvas, a notelist, ?, tiles
 //   assumes that the noteList notes already have fret and string set
-function exSpriteTabRow(aCanvas, score, line, secPerTile, whichLine) {
-    this.ox = 0; // origin
-    this.oy = 0; 
-
+function exSpriteTabRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aTunedHand, whichLine) {
     this.theCanvas = exSpriteCanvas(aCanvas, "exTilesTab01.png", x0, y0)); 
-    this.score = exNoteList; 
+    this.notes = exNoteList; 
+    this.ox = x0; 
+    this.oy = y0; 
+    this.tilesPerSec = tilesPerSec;
+    this.hand = aTunedHand;
+    this.whichLine = whichLine
 
     // find the first and last note to draw
-    this.duration = secPerTile * this.tileW;
+    this.duration = (this.theCanvas.tileW - 5) / tilesPerSec;
     this.startTime = this.duration * whichLine;
-    this.endTime = this.duration * whichLine;
-    this.firstNote = -1; 
-    this.lastNote = -1; 
+    this.endTime = this.duration * (whichLine+1.0);
 
-    // use the line to determine how to gather notes into measures. 
-    // then, the first note in the first measure is the actual first note. 
-    
-    var notInYet, notOutYet, isIn, last; 
-    notInYet = 0; notOutYet=0;
-    last = score.length(); 
-    for (i=0; i<)
-        aNote = score.nth(i); 
-        if (notInYet==0) {
-            if (aNote.t >=this.startTime)
-
-        }
-    }
-    // I don't care about measure markings; others will. 
 }
 
 
-// given a MIDI tone and a place on the measures, draw. 
 exSpriteTabRow.prototype = {
-    drawPluck: function(string, fret, tm, ppn) { 
-        var t0,mi,bpms,px,py,tx,ty, i; 
-        
-        t0 = this.timer.lastMeasureTime;
-        mi = this.timer.measureInterval; 
-        bi = this.timer.beatInterval; 
-        bpms = this.timer.beatsPerMeasure; 
-
-        px = (((tm-t0)/mi)*bpms);
-        if ((px>=-0.01)&&(px<=(7.99*bpms))) {
-            for (i=7; i>2; i=i-1) { 
-                if (px>=((bpms*i)-0.1)) {
-                    px +=1.0; 
-                }
-            }
-            if (px>=((bpms*2)-0.1)) {
-                px +=1.0; 
-            }
-            if (px>=(bpms-0.1)) {
-                px += 2.2; 
-            } else {
-                px += 1.2; 
-            } 
-            py = 6-string; 
-
-            // get the fret and string of the note-- without moving your hand
-            tx = fret; 
-            ty = 0; 
-            this.theCanvas.drawMinSprite(px,py, tx,ty); 
-        }
-
+    // assumes that the note has fret and string set 
+    drawPluck: function(aNote, ppn) { 
+        var px,py,tx,ty; 
+        px = ((aNote.t-this.startTime)*this.tilesPerSec);// but.. ppn?
+        py = 6-aNote.string; 
+        tx = aNote.fret; 
+        ty = 0; 
+        this.theCanvas.drawMinSprite(px,py, tx,ty); 
     },
-
-
 
     redrawer: function(noteList) {
         var i, p, x, plusx, perc, bpm, nc, mstart, bt, intv, measCt; 
 
-        this.clear(); 
-        bpm = this.timer.beatsPerMeasure; 
+        this.theCanvas.clear(); 
+        this.drawLargeSprite(this.ox,this.oy, 3,1, this.theCanvas.tileW,); //xy txy sxy  rt bar
+        this.drawStretchedSprite(1+((bpm+1)*measCt),1, 1,1, 1,6, bpm,1); // vert bar on left
+        this.drawLargeSprite(1+((bpm+1)*measCt),0, 0,8, bpm,1); // above rt
 
-        // two time sliders: one for measure
-        perc = this.timer.measureFraction;
-        x = this.tileSize * ((this.timer.beatsPerMeasure * perc)+1.0); 
-        this.drawSliderSprite(x, 0, 2,9);
-        // .. one for beat.
-        perc = this.timer.beatFraction;
-        x = this.tileSize * (perc+1.0); 
-        this.drawSliderSprite(x, 0, 2,9);
-
-        // draw three measures of tab
-        for (measCt=0; measCt<8; measCt=measCt+1) { 
-            this.drawLargeSprite((bpm+1)*measCt,1, 3,1, 1,6); //xy txy sxy  rt bar
-            this.drawStretchedSprite(1+((bpm+1)*measCt),1, 1,1, 1,6, bpm,1); // vert bar on left
-            this.drawLargeSprite(1+((bpm+1)*measCt),0, 0,8, bpm,1); // above rt
-        
-        }
-        // draw the miniscore at the bottom. instead of one sprite/beat, 
-        // vertical scale is 8 px/beat
-        var pxPerNote = 8; 
-        this.drawStretchedSprite(0,8, 4,9, 1,1, 40,1); // horiz lines
-        nc = 30; 
-        if (noteList.length<nc) { nc = noteList.length; }
-        for (i=0; i<16; i=i+1) { // measure vert bars
-            this.drawSliderSprite(i*pxPerNote*(bpm+1), 8, 3,9); 
-        }
-        
-
+                   
         // plucks!
         for (i=0; i<noteList.length(); i=i+1) {
             p = noteList.nth(i); 
-            this.drawPluck(p.string, p.fret, p.t, 8.0);
+            if ((this.startTime<=p.t)&&(p.t<this.endTime)) {
+                this.drawPluck(p, 8.0);
+            }
         }
     }
 
@@ -290,13 +230,13 @@ exSpriteTabRow.prototype = {
             //this.drawLargeSprite(bpm+1,1, 3,1, 1,6); //xy txy sxy  rt bar
             //this.drawLargeSprite((bpm*2)+2,1, 3,1, 1,6); //xy txy sxy  rt bar
 
-    //    this.drawStretchedSprite(1,1, 1,1, 1,6, bpm,1); // vert bar on left
-      //  this.drawStretchedSprite(2+bpm,1, 1,1, 1,6, bpm,1); // on mid
-        //this.drawStretchedSprite(3+(bpm*2),1, 1,1, 1,6, bpm,1); // on rt
+            //this.drawStretchedSprite(1,1, 1,1, 1,6, bpm,1); // vert bar on left
+            //this.drawStretchedSprite(2+bpm,1, 1,1, 1,6, bpm,1); // on mid
+            //this.drawStretchedSprite(3+(bpm*2),1, 1,1, 1,6, bpm,1); // on rt
 
-    //    this.drawLargeSprite(1,0, 0,8, bpm,1); // beats ticks above left
-      //  this.drawLargeSprite(2+bpm,0, 0,8, bpm,1); // above mid
-        //this.drawLargeSprite(3+(bpm*2),0, 0,8, bpm,1); // above rt
+            //this.drawLargeSprite(1,0, 0,8, bpm,1); // beats ticks above left
+            //this.drawLargeSprite(2+bpm,0, 0,8, bpm,1); // above mid
+            //this.drawLargeSprite(3+(bpm*2),0, 0,8, bpm,1); // above rt
         }
         // draw the miniscore at the bottom. instead of one sprite/beat, 
         // vertical scale is 8 px/beat
@@ -320,13 +260,10 @@ exSpriteTabRow.prototype = {
 
 
 ///////////////////////////////// exClefDisplayLine
-/////////////////////////////////
-///////////////////////////////// exClefDisplayLine
-/////////////////////////////////
-///////////////////////////////// exClefDisplayLine
-/////////////////////////////////
-///////////////////////////////// exClefDisplayLine
-/////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 // draws one line of a score in, in (treble) clef notation, from a sprite sheet. 
 // additional variables say whether to include the clef, start time, pace, and ...?
 
@@ -452,22 +389,32 @@ exLineClef.prototype = {
 
 
 //////////////////////////////////// exSpriteTimeLine
-//////////////////////////////////// exSpriteTimeLine
-//////////////////////////////////// exSpriteTimeLine
-//////////////////////////////////// exSpriteTimeLine
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 // draws a line with a mark on it that slides. handy!
 
-
-
+/*
+        // two time sliders: one for measure
+        perc = this.timer.measureFraction;
+        x = this.tileSize * ((this.timer.beatsPerMeasure * perc)+1.0); 
+        this.drawSliderSprite(x, 0, 2,9);
+        // .. one for beat.
+        perc = this.timer.beatFraction;
+        x = this.tileSize * (perc+1.0); 
+        this.drawSliderSprite(x, 0, 2,9);
+*/
 
 
 
 
 
 //////////////////////////////////// exSpriteTabSet
-//////////////////////////////////// exSpriteTabSet
-//////////////////////////////////// exSpriteTabSet
-//////////////////////////////////// exSpriteTabSet
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 // draw multiple exSpriteTabRows, given top-left and vertical spacing
 
 function exSpriteTabSet(aCanvas, aNoteList, ) {
@@ -516,9 +463,10 @@ exSpriteTabSet.prototype = {
 
 
 ///////////////////////////////////////// exSpriteClefSet
-///////////////////////////////////////// exSpriteClefSet
-///////////////////////////////////////// exSpriteClefSet
-///////////////////////////////////////// exSpriteClefSet
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 
 
 function exSpriteClefSet(aCanvas, aTimer, aTuning) {
