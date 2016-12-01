@@ -1,31 +1,20 @@
 
 
 /*
-    Replaces loosey-goosey canvas drawing with 
-    a tile map drawn on a rectilinear grid. 
-    For the ex library, there is a default tile set. 
-    The grid size in it is 32. The grid size is 16px.
-
-    Default is to draw only with integer grid coordinates. 
+   Implements tile map drawing on a rectilinear grid. 
+    There is a default tile set. 
+    The grid size in it is 32. The grid size on canvas is 16px.
 
     Takes an origin in grid coords; draws relative to that. 
-
     Tracks a bounding-box; erases only that, to white.
     
     for the drawing functions, (x,y) are grid/canvas coords, 
     and (tx,ty) specify the sprite to draw.
-
-
-
-
-// exSprite.js lets you make a sheet of music, tab or clef. 
-
-// the standard canvas should be 1024x640. Sprites are 16x16. 
-// that gives 64x40 sprites. Tab lines are 7 sprites tall.
-
-
-
 */
+// exSprite.js lets you make a sheet of music, tab or clef. 
+// the standard canvas should be 1024x640. Sprites are 16x16.
+// That gives 64x40 sprites. Tab lines are 7 sprites tall.
+
 // before including this file, include exMusic.js
 
 // Canvas aCanvas, float x0, float y0
@@ -48,7 +37,7 @@ function exSpriteCanvas(aCanvas, tileSetName, x0, y0) {
     this.tiles = new Image(); 
     this.tiles.src = tileSetName; 
     that = this;
-    this.tiles.onload: function(that) { that.loaded=1; }
+    this.tiles.onload= function(that) { that.loaded=1; }
 
     // bbox for all draws since last erase-- uses canvas 
     this.minX = x0; 
@@ -86,7 +75,7 @@ exSpriteCanvas.prototype = {
         if (y<this.minY) { this.minY = y; }
         if ((x+txsz)>this.maxX) { this.maxX = (x+txsz); }
         if ((y+tysz)>this.maxY) { this.maxY = (y+tysz); }
-    }
+    },
 
 
     // scale the sprite by xscale and yscale 
@@ -104,7 +93,7 @@ exSpriteCanvas.prototype = {
 
 
     // frees sprite from grid in x-- useful for timer sliders. 
-    drawSliderSprite = function(xsl, y, tx, ty) { 
+    drawSliderSprite: function(xsl, y, tx, ty) { 
         var ts = this.tileSize; 
         var is = this.imgTileSz
         var xpos = xsl/ts; 
@@ -118,7 +107,7 @@ exSpriteCanvas.prototype = {
 
 
     // sigh. what is this whole class even for? 
-    drawCheaterSprite = function(x, y, tx, ty) { 
+    drawCheaterSprite: function(x, y, tx, ty) { 
         var ts = this.tileSize; 
         var is = this.imgTileSz
         var xpos = x/ts; 
@@ -142,7 +131,6 @@ exSpriteCanvas.prototype = {
         this.minY = y0; 
         this.maxX = x0+1; 
         this.maxY = y0+1; 
-        this.
     },
 }
 
@@ -156,10 +144,18 @@ exSpriteCanvas.prototype = {
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 
+// multiple usage modes
+// static, pretty display, multiple rows, tab only
+// spd,mr, tab and clef alternating
+// dynamic display, occasional updates, single line, accompanying timeline
+// dynamic, continuous crawl, generally single line
+// all of these supported by clef, too.
+
+
 // given am HTML canvas, a notelist, ?, tiles
 //   assumes that the noteList notes already have fret and string set
 function exSpriteTabRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aTunedHand, whichLine) {
-    this.theCanvas = exSpriteCanvas(aCanvas, "exTilesTab01.png", x0, y0)); 
+    this.theCanvas = exSpriteCanvas(aCanvas, "exTilesTab01.png", x0, y0); 
     this.notes = exNoteList; 
     this.ox = x0; 
     this.oy = y0; 
@@ -173,7 +169,8 @@ function exSpriteTabRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aTunedHand, whi
     this.endTime = this.duration * (whichLine+1.0);
 
 }
-
+// debugging this, again. what a bore.
+// hence the library. 
 
 exSpriteTabRow.prototype = {
     // assumes that the note has fret and string set 
@@ -202,7 +199,7 @@ exSpriteTabRow.prototype = {
                 this.drawPluck(p, 8.0);
             }
         }
-    }
+    },
 
 
     redrawer: function(noteList) {
@@ -266,6 +263,7 @@ exSpriteTabRow.prototype = {
 ////////////////////////////////////////////////////////////////////
 // draws one line of a score in, in (treble) clef notation, from a sprite sheet. 
 // additional variables say whether to include the clef, start time, pace, and ...?
+// disclaimer: known flaws.
 
 // Canvas aCanvas, int x0, int y0, int wd, exKey *aKey, float tiles/sec
 function exSpriteClefRow(aCanvas, x0, y0, wd, aKey, tilesPerSecond) {
@@ -274,13 +272,16 @@ function exSpriteClefRow(aCanvas, x0, y0, wd, aKey, tilesPerSecond) {
     this.wd = wd; // width of line in tiles
     this.aKey = key; // this.aKey is a pointer; allows dynamic changes. 
     this.tileRate = tilesPerSecond;  // sets density of notes on line
+        //                   c     c#    d       d#     e      f           f#    g   g#        a      a#    b
+    this.heights = new Array( 0.0, 0.0, 10.0,    10.0, 20.0,   30.0,      30.0, 40.0, 40.0,    50.0, 50.0, 60.0 );
+    this.sharps = new Array ( 0, 1, 0,  1, 0, 0,  1, 0, 1, 0, 1, 0 );
 
     // member variables
     this.dt = wd/tilesPerSecond; // t0+
 }
 
 
-exLineClef.prototype = {
+exSpriteClefRow.prototype = {
     // the spots are notes
     drawSpot: function(x, y) { 
         theContext.drawImage(tiles, 9*TILESZ, 6*TILESZ, TILESZ, TILESZ, x, y, TILESZ, TILESZ); 
@@ -304,10 +305,10 @@ exLineClef.prototype = {
         if ((theNote<24)||(theNote>104)) { return; }  // clef note range; constants
         placeInScale = (theNote %12); 
         octave = Math.floor(((theNote-placeInScale))/12.0);
-        isSharp = sharps[placeInScale]; 
+        isSharp = this.sharps[placeInScale]; 
     
         base = 216.0 - (octave-4)*70.0;
-        noteHeight = base - heights[placeInScale];
+        noteHeight = base - this.heights[placeInScale];
     
         gx = 128+ (step*30.0); 
         drawSpot(gx, noteHeight); 
@@ -355,11 +356,11 @@ exLineClef.prototype = {
 
     },
 
-    function onRow(y) { 
+    onRow: function(y) { 
         return  Math.floor(y/TILESZ); 
     },
 
-    function onCol(x) { 
+    onCol: function(x) { 
         return Math.floor(x/TILESZ); 
     },
 
@@ -373,6 +374,8 @@ exLineClef.prototype = {
 
 
         this.spc.clear(); 
+            drawSprite(1, 3,  0, 1,  15, 5); // clef and lines
+            drawSprite(14, 3, 10, 1,  6, 5);
 
         this.spc.drawLargeSprite((bpm+1)*measCt,1, 3,1, 1,6); //xy txy sxy  rt bar
         this.spc.drawStretchedSprite(1+((bpm+1)*measCt),1, 1,1, 1,6, bpm,1); // vert bar on left
@@ -395,6 +398,7 @@ exLineClef.prototype = {
 ////////////////////////////////////////////////////////////////////
 // draws a line with a mark on it that slides. handy!
 
+// works with clef and tab rows; vertically matches up!
 /*
         // two time sliders: one for measure
         perc = this.timer.measureFraction;
@@ -417,48 +421,17 @@ exLineClef.prototype = {
 ////////////////////////////////////////////////////////////////////
 // draw multiple exSpriteTabRows, given top-left and vertical spacing
 
-function exSpriteTabSet(aCanvas, aNoteList, ) {
+//function exSpriteTabSet(aCanvas, aNoteList, ) {
     // in a for loop or something
     // this.theCanvas = new exSpriteTabLine(aCanvas, ); 
-};
+//};
 
 
-exSpriteTabSet.prototype = {
+//exSpriteTabSet.prototype = {
 
 
-    // given a MIDI tone and a place on the measures, draw. 
-    drawStaff: function(noteList, measureStart) { 
-        var i, p, x, plusx, perc, bpm, nc, mstart, bt, intv; 
 
-        this.clear(); 
-        bpm = this.timer.beatsPerMeasure; 
-
-
-        // draw three measures of tab
-        this.drawLargeSprite(0,1, 3,1, 1,6); //xy txy sxy  left bar
-        this.drawLargeSprite(bpm+1,1, 3,1, 1,6); //xy txy sxy  rt bar
-        this.drawLargeSprite((bpm*2)+2,1, 3,1, 1,6); //xy txy sxy  rt bar
-
-        this.drawStretchedSprite(1,1, 1,1, 1,6, bpm,1); // vert bar on left
-        this.drawStretchedSprite(2+bpm,1, 1,1, 1,6, bpm,1); // on mid
-        this.drawStretchedSprite(3+(bpm*2),1, 1,1, 1,6, bpm,1); // on rt
-
-        this.drawLargeSprite(1,0, 0,8, bpm,1); // beats ticks above left
-        this.drawLargeSprite(2+bpm,0, 0,8, bpm,1); // above mid
-        this.drawLargeSprite(3+(bpm*2),0, 0,8, bpm,1); // above rt
-
-        // draw the miniscore at the bottom. instead of one sprite/beat, 
-        // vertical scale is 8 px/beat
-        
-
-        // plucks!
-        for (i=0; i<noteList.length(); i=i+1) {
-            p = noteList.nth(i); 
-            this.drawPluck(p.string, p.fret, p.t, 8.0);
-        }
-
-    }
-};
+//};
 
 
 
@@ -469,9 +442,86 @@ exSpriteTabSet.prototype = {
 ////////////////////////////////////////////////////////////////////
 
 
-function exSpriteClefSet(aCanvas, aTimer, aTuning) {
-};
+//function exSpriteClefSet(aCanvas, aTimer, aTuning) {
+//};
 
 
+///////////////////////////////////////// exSound
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+// this is sloppy. many questions. 
+// also not where this goes. goes in exMusic? 
+function exWebAudio(aNoteList) { 
+    this.notes = aNoteList; 
+    this.t = 0; 
+    this.hasAudio = true; 
+    this.freqs = [
+32.703, 34.648, 36.708, 38.891, 41.203,   43.654, 46.249, 48.999, 51.913, 55.0,   58.270, 61.735, // you know?
+65.406, 69.296, 73.416, 77.782, 82.407,   87.307, 92.499, 97.999, 103.83, 110.00, 116.54, 123.47, // can't hear these. 
+130.81, 138.59, 146.83, 155.56, 164.81,   174.61, 185.00, 196.00, 207.65, 220.00, 233.08, 246.94, 
+261.63, 277.18, 293.67, 311.13, 329.63,   349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88, 
+523.25, 554.37, 587.33, 622.25, 659.26,   698.46, 739.99, 783.99, 830.61, 880.00, 932.33, 987.77,
+1046.5, 1108.7, 1174.7, 1244.5, 1318.5,   1396.9, 1480.0, 1568.0, 1661.2, 1760.0, 1864.7, 1975.5, 
+2093.0, 2217.5, 2349.3, 2489.0, 2637.0,   2793.0, 2960.0, 3136.0, 3322.4, 3520.0, 3729.3, 3951.1
+    ]; 
+
+    try {
+        window.AudioContext = window.AudioContext||window.webkitAudioContext;
+        this.context = new AudioContext();
+    } catch(e) {
+        alert('Web Audio API is not supported in this browser');
+        this.hasAudio =false; 
+    }
+        
+    if (this.hasAudio) {
+        this.audioCon = new webkitAudioContext();
+        this.oscillator = audioCon.createOscillator();
+        this.gainNode = audioCon.createGain(); 
+        this.oscillator.type = 0
+        this.oscillator.frequency.value = 220.0// freqs[note-24];
+        this.gainNode.gain.value = 0.0; 
+        this.oscillator.connect(this.gainNode);
+        this.gainNode.connect(this.audioCon.destination);
+        this.oscillator.start(); 
+        this.gainNode.gain.value = 0.0; 
+    }
+}
+// multiple oscillators? 
+// this.audioCon vs window.audioContext? 
+
+
+exWebAudio.prototype = {
+
+    play: function(note) {
+        if (this.hasAudio===1) {
+            if ((note>23)&&(note<105)) {
+                this.oscillator.frequency.value = this.freqs[note-24];
+                this.gainNode.gain.value = 1.0; 
+            } else {
+                this.gainNode.gain.value = 0.0;
+            }
+        }
+    },
+
+        
+    pause: function() {
+        oscillator.disconnect();
+    },  /// is this restartable? 
+
+    setTime: function(t) { 
+        this.t = t; 
+    },
+
+    update:function(dt) { 
+        // find notes st this.t<note.t<this.t+dt
+        // start those
+        // find ending notes and stop them. 
+        this.t += dt; 
+    }
+
+}
 
 
