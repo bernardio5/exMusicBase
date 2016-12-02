@@ -65,15 +65,73 @@ give the motifs to a playbacker-> noteList
 display
 
 
-Implementation plan
+Implementation plan/ to do 
 
 Don't try to get it all working at once, of course. 
 
-1) Fix note, notelist, tunedhand, key, chord, motif. 
+1) Reduce duplication from "toMerge"
+2) Using intereim tests 11 and 12, troubleshoot exDisplay, convert to tests 3 and 4. 
+3) Future tests
+    exChord
+    exChordShapes
+    start makign compositions using motifs-- design before testing, right? 
 
-2) Gen a random notelist of 256 notes. 
 
-3) Get exTextTab working to show the notes. 
 
-4) Decide on what exLine will be doing. 
+Earlier considerations: 
+
+How to compose with short inputs and randomness. 
+
+Music is sound structured like language. 
+Music uses many patterns. The patterns reduce the number of choices. 
+But not so much that there are not too many choices. Like language!
+
+Music has structure that is not exposed except over time. 
+The structures I am aware of seem pretty trivial: interpolation, alternation, 
+arithmetic progression. So I can get good results soon? Hah. 
+
+Music Theory Choices: 
+
+Key, mode, and rhythm are the first reductions. Key changes for melodies
+are a way to transform a set of frequency relationships and preserve 
+their important relationships. We have all waited through a composer 
+fluffing out a work with a tedious set of chord changes. Ok, enable that. 
+
+Lines are repeating rhythmic fragments; no tone assignments, just timing. 
+One line is never enough. 
+
+Shuffles are meant to map chord notes to line events in a controllably 
+random way. 
+
+Key, chord, line, and shuffle combine to generate a set of notes. 
+A single motif will not be interesting enough to be a composition, 
+but interesting music seems available through manipulating this structure. 
+
+A song object is essentially a list of notes, which are arrays; each note has 
+at least a midi value and a time (in seconds). Other values could be standardized 
+later? But it would be good for some tools to be able to examine and change notes
+without dealing with why they are in the work. 
+
+
+
+Presentation and playback objects
+
+The timer object encapsulates beat and measure. It's the metronome object. 
+Other objects respond with event lists, given a time range; 
+timer knows what time it is now. 
+
+The deck object is a pseudorandom number generator. 
+Compositions using the deck will be able to randomly produce the same effect 
+over and over. The deck literally contians the pseudorandom number list; 
+to do otherwise would invite dependence on JS doing math in particular ways. 
+Which I'm sure it does, mmmmmostly. It's not your fault!
+
+The tuned hand encapsulates stringed instrument physicality. 
+When you playa a guitar, it makes some notes easier to get to than others. 
+That seems like a nice way to reduce the number of arbitrary decisions. 
+
+There are various display objects: tab, clef, a metronome, sound, ... 
+
+
+
 

@@ -360,7 +360,17 @@ function exKey() {
     this.modeLen = 7; // |major|
     this.notes = new exNoteList(); // once the constants are set, this is filed in
 }
-
+/*
+    this.modes = [
+[ 0, 2,4, 5,7,9,11, 12, 14,16, 17,19,21,23, 24, 26,28, 29,31,33,35, 36, -1,-3,-5,-7,-8,-10,-12 ], //major
+[ 0, 2,3, 5,7,8,10, 12, 14,15, 17,19,20,22, 24, 26,27, 29,31,32,34, 36, -2,-4,-5,-7,-9,-10,-12 ], // minor
+[ 0, 2,3, 5,7,9,10, 12, 14,15, 17,19,21,22, 24, 26,27, 29,31,33,34, 36, -2,-3,-5,-7,-9,-10,-12 ], // dorian
+[ 0, 2,4, 5,6,10,   12, 14,16, 17,18,22,    24, 26,28, 29,30,34,    36, -2,-6,-7,-8,-10,-12    ], // wholetone
+[ 0, 2,3, 6,7,8,10, 12, 14,15, 18,19,20,22, 24, 26,28, 30,31,32,34, 36, -2,-4,-5,-6,-8,-10,-12 ],// hungarian
+[ 0, 4,6, 7,11,     12, 16,18, 19,23,       24, 28,30, 31,35,       36, -1,-5,-6,-8,-12 ], // "chinese"
+[ 0, 1,3, 5,7,9,10, 12, 13,15,17,19,21,22,  24, 25,27,29,31,33,34,  36, -2,-3,-5,-7,-9,-11,-12 ], // javan
+    ];
+*/
 
 exKey.prototype =  { 
     recalculate: function() { 
@@ -1266,6 +1276,48 @@ exSignature.prototype = {
 
 }
 
+
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+// the circle of fifths. IDK, something. stash utilities here. 
+
+function exCircle() { 
+    // going clockwise!
+    //          0  1  2   3  4  5   6  7  8   9  10  11
+    this.c5 = [ 0, 7, 2,  9, 4, 11, 6, 1, 8,  3, 10, 5 ];
+
+    // the place of each entry in nts
+    //    x = this.c5[this.place[x]]
+    // this.place=[ 0, 7, 2,  9, 4, 11, 6, 1, 8, 3, 10, 5 ]; 
+    // Did not see that coming!
+}
+
+// go n steps around, clockwise, up to +/-24 steps
+// the intention is to go around <12 steps. 
+// if you do more, god help you cause I'm bored. 
+exCircle.prototype = {  // seems like these should all be external-- stateless?
+
+    around: function(inp, n) { 
+        var inOct = inp%12; 
+        var oct = inp-inOct; 
+        var inPlace = this.c5[inOct];
+        // inplace is where note inp is on the c5ths
+        // now, go around. 
+        newPlace = (inPlace+n)%12;
+        if (newPlace<0) { newPlace+=12; } // op order? 
+        return this.c5[newPlace] +oct;
+    },
+
+    opposite: function(n) { 
+        return this.around(n,6); 
+    },
+
+    minorEquivalent: function(inp) { 
+        return this.around(n,3); 
+    }
+}
 
 
 ///////////////////////////////////////// exTextTab

@@ -1,6 +1,43 @@
 
 
-function exMotif(aDeck, aChord, aLine, aType) { 
+
+
+
+
+/* you have rhythm and a chord. shuffle takes them and ... ?
+
+    There are three shuffle types: 
+        Note: one note, same note, per line 
+        Chord: same chord 
+            oo: some notes in or out? 
+        
+
+    Operations on shuffles tend to just be regeneration
+        Note: pick a different note: change the chord!
+        Chord: different chord: change that
+
+        Arpeggiation: 
+
+            Changes to inputs keep that randomness, 
+            are recognizably the same. 
+
+    Duration is set by the line. 
+    Emphasis is set by having many lines. 
+
+
+    I don't like the interface yet. 
+    goals: 
+        set from one line of code. 
+        init random
+        modify incrementally
+        have incremental mods not disrupt
+
+    life cycle: init, according to various patterns
+
+*/
+
+
+function exShuffle(aChord, aLine, aType) { 
     this.chord = new exChord(); 
     this.chord.copy(aChord); 
     
@@ -11,46 +48,88 @@ function exMotif(aDeck, aChord, aLine, aType) {
 }
 
 
-exMotif.prototype.copy = function(it) { 
+exShuffle.prototype.copy = function(it) { 
 }
 
-exMotif.prototype.setLine = function(aLine) { 
+exShuffle.prototype.setLine = function(aLine) { 
     this.line = aLine; 
     this.rerender(); 
 }
 
-exMotif.prototype.setChord = function(aCh) { 
+exShuffle.prototype.setChord = function(aCh) { 
     this.chord = aCh; 
     this.rerender(); 
 }
 
 // yeah, this will make really boring music. 
 // if this is all that you are doing!
-exMotif.prototype.rerender = function(controlA, controlB, deck) {
+exShuffle.prototype.rerender = function(controlA, controlB, deck) {
     switch (this.type) {
-        // picks a note, sets all notes using that note and the line
-        case 0: this.setToSteadies(controlA, controlB, deck); break;
-        // picks a hit, and sets several notes to occur dring that hit
+        case 0: this.setToSteadies(controlA, controlB, deck); break; 
         case 1: this.setToChord(controlA, controlB, deck); break; 
-        // lowest note to highest, one per hit. 
         case 2: this.setToSweeps(controlA, controlB, deck); break; 
-        // picks two and alternates per hit
         case 3: this.setToTrill(controlA, controlB, deck); break; 
-        // all the way up, then all down, again, till hit repeats. 
         case 4: this.setToNoodle(controlA, controlB, deck); break; 
     }
 }
 
 // one note? a chord? every hit? one? 
 // chord selected how? 
-exMotif.prototype.setToSteady = function() { 
+exShuffle.prototype.setToSteady = function() { 
 
 }
 
 // 
-exMotif.prototype.setToSweep = function() { 
+exShuffle.prototype.setToSweep = function() { 
 
 }
+
+
+// can't apply
+exShuffle.prototype.apply = function(t0, t1) {
+    this.events = [];
+    this.line.setEventsForSpan(t0,t1); 
+
+    var i,j;
+    baseNote = this.chord.getNthNote(0);
+    for (i=0; i<this.line.eventCount; i=i+1) {
+        // set line's events for span
+        baseLineEv = this.line.getNthEvent(i);
+        t = baseLineEv[0]; 
+
+        switch (this.type) { 
+            case 0: // single note
+            // push [t,baseNote]
+//                this.events.push()
+                break;
+            case 1: // chord
+            // for each n in chord
+            // push [t, n]
+                break;
+            case 2: // arpeg
+            // n = this.chord.getNthNote(randos[i])
+            // push [t, n];
+                break; 
+        }
+
+    }
+}
+
+// what a mess! 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*
@@ -311,6 +390,183 @@ exMotif.prototype.getNthNote = function(n, target) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+/////////////////  exTabDisplay: tab notation for guitars  
+/////////////////  exTabDisplay: tab notation for guitars  
+// the tab display has a two-measure area, a current and a next measure. 
+// there is a slider at the top, and it shows where you are in playback.
+
+// aHand, aNoteList..? 
+function exTabDisplay(aCanvas, aTimer) {
+    this.canvas = aCanvas; 
+    this.context = aCanvas.getContext("2d");
+        
+    this.context.fillStyle = 'white';
+    this.context.strokeStyle = "#000";
+    
+    this.timer = aTimer; 
+
+    this.loaded = 0; 
+    this.tiles = new Image(); 
+    this.tiles.src = "tabTiles01.png"; 
+    that = this;
+    this.tiles.onload = function(that) { that.loaded=1; }
+    this.tileSize = 32;     
+
+    this.timer = aTimer; 
+
+}
+
+// the scales, building off of fundamental tones
+// 
+
+
+
+exTabDisplay.prototype.copy = function (n) {  
+    // as above, so here. later
+}
+
+// 
+exTabDisplay.prototype.drawMinSprite = function(x, y, tx, ty) { 
+    var ts = this.tileSize; 
+    this.context.drawImage(this.tiles, tx*ts, ty*ts, ts, ts, x*ts, y*ts, ts, ts); 
+}
+
+exTabDisplay.prototype.drawSliderSprite = function(x, y, tx, ty) { 
+    var ts = this.tileSize; 
+    this.context.drawImage(this.tiles, tx*ts, ty*ts, ts, ts, x, y*ts, ts, ts); 
+}
+
+exTabDisplay.prototype.drawLargeSprite = function(x, y, tx, ty, txsz, tysz) { 
+    var ts = this.tileSize; 
+    this.context.drawImage(this.tiles, tx*ts, ty*ts, txsz*ts, tysz*ts, x*ts, y*ts, txsz*ts, tysz*ts); 
+}
+
+exTabDisplay.prototype.drawStretchedSprite = function(x, y, tx, ty, txsz, tysz, xscale, yscale) { 
+    var ts = this.tileSize; 
+    this.context.drawImage(this.tiles, tx*ts, ty*ts, txsz*ts, tysz*ts, x*ts, y*ts, txsz*ts*xscale, tysz*ts*yscale); 
+}
+
+/*
+    the whole point of this is... not this. 
+exTabDisplay.prototype.drawMidi = function(midi, step) { 
+    var site = this.aTunedHand.getFretForNote(midi); 
+    this.drawPluck(site[0], site[1], step); 
+}
+*/
+    
+
+
+exTabDisplay.prototype.clear = function() {
+    this.objCount = 1;
+    this.iteratorCounter = 0;
+    
+    this.cxw = this.context.canvas.width; 
+    this.cxh = this.context.canvas.height; 
+    
+    this.context.fillStyle = this.bg;
+    this.context.beginPath();
+    this.context.rect(0,0, this.cxw, this.cxh);
+    this.context.fill();
+        
+}
+
+// given a MIDI tone and a place on the measures, draw. 
+exTabDisplay.prototype.drawPluck = function(string, fret, tm, ppn) { 
+    var t0,mi,bpms,px,py,tx,ty; 
+    
+    t0 = this.timer.lastMeasureTime;
+    mi = this.timer.measureInterval; 
+    bi = this.timer.beatInterval; 
+    bpms = this.timer.beatsPerMeasure; 
+
+    px = (((tm-t0)/mi)*bpms);
+    if ((px>=-0.01)&&(px<=(2.99*bpms))) {
+        if (px>=((bpms*2)-0.1)) {
+            px +=3.0; 
+        }
+        if (px>=(bpms-0.1)) {
+            px += 4.2; 
+        } else {
+            px += 1.2; 
+        } 
+        py = 6-string; 
+
+        // get the fret and string of the note-- without moving your hand
+        tx = fret; 
+        ty = 0; 
+        this.drawMinSprite(px,py, tx,ty); 
+    }
+
+    // also draw below
+    // what measure is this note in? 
+    px = tm-t0; 
+    ms = Math.floor((px/mi)+0.1);
+    if ((ms>=0) && (ms<20)) {
+        px = px/bi; 
+        px = ((px+ms)*ppn)+6;
+        spx = 10-string;
+        this.drawSliderSprite(px,8, spx,9);
+    }
+}
+
+
+
+exTabDisplay.prototype.redrawer = function(noteList) {
+    var i, p, x, plusx, perc, bpm, nc, mstart, bt, intv; 
+
+    this.clear(); 
+    bpm = this.timer.beatsPerMeasure; 
+
+    // two time sliders: one for measure
+    perc = this.timer.measureFraction;
+    x = this.tileSize * ((this.timer.beatsPerMeasure * perc)+1.0); 
+    this.drawSliderSprite(x, 0, 2,9);
+    // .. one for beat.
+    perc = this.timer.beatFraction;
+    x = this.tileSize * (perc+1.0); 
+    this.drawSliderSprite(x, 0, 2,9);
+
+    // draw two measures of tab
+    this.drawLargeSprite(0,1, 3,1, 1,6); //xy txy sxy  left bar
+    this.drawLargeSprite(bpm+3,1, 3,1, 1,6); //xy txy sxy  rt bar
+    this.drawLargeSprite((bpm*2)+6,1, 3,1, 1,6); //xy txy sxy  rt bar
+    this.drawStretchedSprite(1,1, 1,1, 1,6, bpm+1,1); // vert bar on left
+    this.drawStretchedSprite(4+bpm,1, 1,1, 1,6, bpm+1,1); // on rt
+    this.drawStretchedSprite(7+(bpm*2),1, 1,1, 1,6, bpm+1,1); // on rt
+    this.drawLargeSprite(1,0, 0,8, bpm+1,1); // beats ticks above left
+    this.drawLargeSprite(4+bpm,0, 0,8, bpm+1,1); // above rt
+    this.drawLargeSprite(7+(bpm*2),0, 0,8, bpm+1,1); // above rt
+
+    // draw the miniscore at the bottom. instead of one sprite/beat, 
+    // vertical scale is 8 px/beat
+    var pxPerNote = 8; 
+    this.drawStretchedSprite(0,8, 4,9, 1,1, 26,1); // horiz lines
+    nc = 30; 
+    if (noteList.length<nc) { nc = noteList.length; }
+    for (i=0; i<30; i=i+1) { // measure vert bars
+        this.drawSliderSprite(i*pxPerNote*(bpm+1), 8, 3,9); 
+    }
+    
+
+    // plucks!
+    for (i=0; i<noteList.length; i=i+1) {
+        p = noteList[i]; 
+        this.drawPluck(p[2], p[3], p[1], 8.0); 
+    }
+}
+
+        
 
 
 
