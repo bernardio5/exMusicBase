@@ -14,11 +14,6 @@
 // if there IS no timer, then the concept of measure lives here. 
 
  
-var exNote = require('./exNote');
-var exNoteList = require('./exNoteList');
-
-
-
 function exLine(aDeck) {
     this.deck = new exDeck(); 
     this.deck.copy(aDeck); 
@@ -30,6 +25,7 @@ function exLine(aDeck) {
     this.intervals = this.beats.length;     
     this.notes = new exNoteList(); 
 }
+
 
 exLine.prototype = {
 
@@ -47,7 +43,7 @@ exLine.prototype = {
     },
 
 
-    seed: function(x) { this.deck.seed(x); }
+    seed: function(x) { this.deck.seed(x); },
 
 
     // sets using an int, beats per measure, and an array of all beats. Ex: 4,[1,0,1,0]; 8,[0,0,1,1,0,0,0,0]
@@ -230,8 +226,6 @@ exLine.prototype = {
         }
     }
 }
-
-module.export = exLine;
 
 
 

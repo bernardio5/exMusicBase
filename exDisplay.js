@@ -18,49 +18,49 @@
 // before including this file, include exMusic.js
 
 // Canvas aCanvas, float x0, float y0
-function exSpriteCanvas(aCanvas, tileSetName, x0, y0) {
+function exSpriteCanvas(aCanvas, x0, y0) {
     this.canvas = aCanvas; 
+
     this.context = aCanvas.getContext("2d");
     this.context.fillStyle = 'white';
     this.context.strokeStyle = "#000";
     this.cxw = this.context.canvas.width; 
     this.cxh = this.context.canvas.height; 
     this.tileSize = 16;    // size of tiles on screen; set how you please
-    this.imgTileSz = 32;    // sze of tiles in tabTiles01: 32
-    this.tileW = (this.cxw / this.tileSize) + 1; // # tiles available on canvas in X
-    this.tileH = (this.cxh / this.tileSize) + 1; // in Y
+    this.imgTileSz = 32;    // sze of tiles in exTiles: 32
+    this.tileW = Math.floor(this.cxw / this.tileSize) + 1; // # tiles available on canvas in X
+    this.tileH = Math.floor(this.cxh / this.tileSize) + 1; // in Y
     this.x0 = x0 * this.tileSize;
     this.y0 = y0 * this.tileSize;
 
     // load the tile set bitmap. 
     this.loaded = 0; 
     this.tiles = new Image(); 
-    this.tiles.src = tileSetName; 
+    this.tiles.src = "../exTiles.png"; 
     that = this;
     this.tiles.onload= function(that) { that.loaded=1; }
 
     // bbox for all draws since last erase-- uses canvas 
-    this.minX = x0; 
-    this.minY = y0; 
-    this.maxX = x0+2; 
-    this.maxY = y0+2; 
+    this.minX = 999.0; 
+    this.minY = 999.0; 
+    this.maxX = -999.0; 
+    this.maxY = -999.0; 
 }
 
 
 exSpriteCanvas.prototype = {
     // draw tile at tx,ty at grid point x, y-- minimal default case
     drawSprite: function(x, y, tx, ty) { 
-        if ((x>-1)&&(x<this.tileW)&&(y>-1)&&(y<this.tileH)) {
-            var ts = this.tileSize; 
-            var is = this.imgTileSz;
-            var xpos = this.x0 + (ts*x); 
-            var ypos = this.y0 + (ts*y); 
-            this.context.drawImage(this.tiles, tx*is, ty*is, is, is, xpos, ypos, ts, ts); 
-            if (x<this.minX) { this.minX = x; }
-            if (y<this.minY) { this.minY = y; }
-            if (x>this.maxX) { this.maxX = x; }
-            if (y>this.maxY) { this.maxY = y; }
-        }
+        var ts = this.tileSize; 
+        var is = this.imgTileSz;
+        var xpos = this.x0 + (ts*x); 
+        var ypos = this.y0 + (ts*y); 
+        this.context.drawImage(this.tiles, tx*is, ty*is, is, is, xpos, ypos, ts, ts); 
+        if (x<this.minX) { this.minX = x; }
+        if (y<this.minY) { this.minY = y; }
+        if (x>this.maxX) { this.maxX = x; }
+        if (y>this.maxY) { this.maxY = y; }
+        
     },
 
 
@@ -127,31 +127,11 @@ exSpriteCanvas.prototype = {
         this.context.beginPath();
         this.context.rect(this.x0 + (this.minX*ts), this.y0+(this.minY*ts), this.maxX*ts, this.maxY*ts);
         this.context.fill();
-        this.minX = x0; 
-        this.minY = y0; 
-        this.maxX = x0+1; 
-        this.maxY = y0+1; 
+        this.minX = 999.0; 
+        this.minY = 999.0; 
+        this.maxX = -999.0; 
+        this.maxY = -999.0; 
     },
-
-
-        // the spots are notes-- no flags, yet!
-    drawSpot: function(x, y) { // add a flag argument!
-        var ts = this.tileSize; 
-        this.context.drawImage(tiles, 9*ts, 6*ts, ts, ts, x, y, ts, ts); 
-    },
-
-    // lines above and below the clef lines around individual notes
-    drawLine: function(x, y) { 
-        var ts = this.tileSize; 
-        this.context.drawImage(tiles, 12*ts, 6*ts, ts, ts, x, y, ts, ts); 
-    },
-
-    // sharps in front of notes
-    drawSharp: function(x, y) { 
-        var ts = this.tileSize; 
-        this.context.drawImage(tiles, 7*ts, 6*ts, ts,ts, x,y, ts,ts); 
-    },
-
 }
 
 
@@ -174,14 +154,14 @@ exSpriteCanvas.prototype = {
 
 // given am HTML canvas, a notelist, ?, tiles
 //   assumes that the noteList notes already have fret and string set
-function exSpriteTabRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aTunedHand) {
-    this.theCanvas = exSpriteCanvas(aCanvas, "exTilesTab01.png", x0, y0); 
-    this.notes = exNoteList; 
+function exSpriteTabRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aTunedHand, showClef) {
+    this.theCanvas = new exSpriteCanvas(aCanvas, x0, y0); 
+    this.notes = aNoteList; 
     this.tilesPerSec = tilesPerSec;
     this.hand = aTunedHand;
     
     if (showClef) {
-        this.offset = 7;
+        this.offset = 6;
     } else {
         this.offset = 3; 
     }
@@ -189,8 +169,7 @@ function exSpriteTabRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aTunedHand) {
     this.startTime = 0.0; 
     this.endTime = this.duration; 
 }
-// debugging this, again. what a bore.
-// hence the library. 
+
 
 exSpriteTabRow.prototype = {
     setStartTime: function(t) { 
@@ -202,26 +181,30 @@ exSpriteTabRow.prototype = {
     // assumes that the note has fret and string set 
     drawPluck: function(aNote, ppn) { 
         var px,py,tx,ty; 
-        px = ((aNote.t-this.startTime)*this.tilesPerSec);// but.. ppn?
+        px = (((aNote.t-this.startTime)*this.tilesPerSec))+this.offset; 
         py = 6-aNote.string; 
         tx = aNote.fret; 
         ty = 0; 
-        this.theCanvas.drawMinSprite(px,py, tx,ty); 
+        this.theCanvas.drawSprite(px,py, tx,ty); 
     },
 
 
-    redrawer: function(noteList) {
-        var i, p, x, plusx, perc, bpm, nc, mstart, bt, intv, measCt; 
+    redrawer: function() {
+        var i, f, p; 
 
         this.theCanvas.clear(); 
-        // letters at line beginning--?
-        this.drawLargeSprite(this.ox,this.oy, 3,1, this.theCanvas.tileW,); //xy txy sxy  rt bar
-        this.drawStretchedSprite(1+((bpm+1)*measCt),1, 1,1, 1,6, bpm,1); // vert bar on left
-        this.drawLargeSprite(1+((bpm+1)*measCt),0, 0,8, bpm,1); // above rt
 
+        // letters at line beginning--?
+        //    drawStretchedSprite: function(x, y, tx, ty, txsz, tysz, xscale, yscale) 
+        strs = this.hand.strings;
+        for (i=0; i<strs.length; i=i+1) {
+            f = (strs[i])+1;
+            this.theCanvas.drawSprite(0,i+1, 4+(f%12),12);
+            this.theCanvas.drawStretchedSprite(1,i+1,  1,8,  1,1,  this.theCanvas.tileW,1);  // lines
+        }
         // plucks!
-        for (i=0; i<noteList.length(); i=i+1) {
-            p = noteList.nth(i); 
+        for (i=0; i<this.notes.length(); i=i+1) {
+            p = this.notes.nth(i); 
             if ((this.startTime<=p.t)&&(p.t<this.endTime)) {
                 this.drawPluck(p, 8.0);
             }
@@ -240,26 +223,26 @@ exSpriteTabRow.prototype = {
 // additional variables say whether to include the clef, start time, pace, and ...?
 // disclaimer: known flaws.
 
-function exSpriteClefRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aKey)  {
-    this.theCanvas = exSpriteCanvas(aCanvas, "exTilesClef01.png", x0, y0); 
-    this.notes = exNoteList; 
+function exSpriteClefRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aKey, showClef)  {
+    this.theCanvas = new exSpriteCanvas(aCanvas, x0, y0); 
+    this.notes = aNoteList; 
     this.tilesPerSec = tilesPerSec;
     this.key = aKey;
-    
+    this.showClef = showClef;
     if (showClef) {
-        this.offset = 7;
+        this.offset = 5;
     } else {
-        this.offset = 3; 
+        this.offset = 1; 
     }
     this.duration = (this.theCanvas.tileW - this.offset) / tilesPerSec;
     this.startTime = 0.0; 
     this.endTime = this.duration; 
 
-    //               c     c#    d      d#     e      f    f#    g   g#       a      a#    b
-    this.heights = [ 0.0, 0.0, 10.0,  10.0, 20.0, 30.0,  30.0, 40.0, 40.0,  50.0, 50.0, 60.0 ];
-    this.sharps =  [0, 1, 0,  1, 0, 0,  1, 0, 1,  0, 1, 0 ];
-    this.topLineNotes = [ 68, 71, 75,  78, 81 ]; // the notes above the staff
-    this.bottomLineNotes = [ 50, 47, 44,  41, 36, 32 ]; // below
+    //               c    c#   d     d#    e    f     f#   g   g#     a   a#   b
+    this.heights = [ 0.0, 0.0, 1.0,  1.0, 2.0, 3.0,  3.0, 4.0, 4.0,  5.0, 5.0, 6.0 ];
+    this.sharps =  [0, 1, 0,           1, 0, 0,         1, 0, 1,       0, 1, 0 ];
+    this.topLineNotes = [ 71, 75,  78, 82, 85 ]; // the notes above the staff
+    this.bottomLineNotes = [ 50, 47, 43,  40, 36, 33 ]; // below
 }
 
 
@@ -271,49 +254,57 @@ exSpriteClefRow.prototype = {
 
     // draw the note on the page
     // we could save this and recalc only when the note changes-- meh. 
-    drawNote: function(theNote, step) { 
+    drawNote: function(theNote) { 
         var placeInScale, octave, isSharp, base, noteHeight, gx, i; 
-    
-        if ((theNote<24)||(theNote>104)) { return; }  // clef note range; constants
+    // debugger;
+        if ((theNote.midi<24)||(theNote.midi>88)) { return; }  // clef note range; constants
 
-        placeInScale = (theNote %12); 
-        octave = Math.floor(((theNote-placeInScale))/12.0);
+        placeInScale = (theNote.midi %12); 
+        octave = Math.floor(((theNote.midi-placeInScale))/12.0);
         isSharp = this.sharps[placeInScale]; 
-        base = 216.0 - (octave-4)*70.0;
-        noteHeight = base - this.heights[placeInScale];
+        base = 3.5*(octave-4);
+        noteHeight = 5.5-(base + (this.heights[placeInScale]*.5));
     
-        gx = 128+ ((theNote.t-this.startTime)*30.0); 
-        this.spc.drawSpot(gx, noteHeight); 
+        gx = ((theNote.t-this.startTime) * this.tilesPerSec)+this.offset; 
+        this.theCanvas.drawStretchedSprite(gx,noteHeight, 9,6, 1,1, 1.75,1.75); 
         
         if (isSharp==1) { 
-            this.spc.drawSharp(gx-12.0, noteHeight-8.0);
+            this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 7,6, 1,1, 1.4,1.4); 
         }
         
         // note above staff? draw intevening lines
         for (i=0; i<5; i=i+1) {
-            if (theNote > this.topLineNotes[i]) {
-                this.spc.drawLine(gx, (96.0 - (i*20)));
+            if (theNote.midi > this.topLineNotes[i]) {
+                this.theCanvas.drawStretchedSprite(gx, -1.05-i, 1,8, 1,1, 1.75,1.2);
             }
         }
         // note below
+        //debugger;
         for (i=0; i<6; i=i+1) {
-            if (theNote<this.bottomLineNotes[i]) {
-                this.spc.drawLine(gx, (216.0+(20.0*i)));
+            if (theNote.midi<this.bottomLineNotes[i]) {
+                this.theCanvas.drawStretchedSprite(gx,5.95+i,  1,8, 1,1,  1.75,1.2);
             }
         }    
     },
 
 
-    redrawer: function(noteList) {
+    redrawer: function() {
         var i, p; 
-        this.spc.clear(); 
-        this.spc.drawLargeSprite(1, 3,  0, 1,  15, 5); // clef and lines
-        this.spcdrawLargeSprite(14, 3, 10, 1,  6, 5);
+        this.theCanvas.clear(); 
+
+        for (i=0; i<6; i=i+1) {
+            // measure markings?
+            this.theCanvas.drawStretchedSprite(0,i,  1,8,  1,1,  this.theCanvas.tileW,1);  // lines
+        } 
+        if (this.showClef) {
+            // key markings? time markings? 
+            this.theCanvas.drawStretchedSprite(0,0.05,  0, 1,  2, 5, 1.5,1.5); // clef and lines
+        }
         // plucks!
-        for (i=0; i<noteList.length(); i=i+1) {
-            p = noteList.nth(i); 
+        for (i=0; i<this.notes.length(); i=i+1) {
+            p = this.notes.nth(i); 
             if ((this.startTime<p.t)&&(p.t<=this.endTime)) { 
-                this.drawPluck(p.string, p.fret, p.t, 8.0);
+                this.drawNote(p);
             }
         }
     },
@@ -328,13 +319,13 @@ exSpriteClefRow.prototype = {
 // draws a line with a mark on it that slides. handy!
 
 function exSpriteTimeLine(aCanvas, x0, y0, tilesPerSecond, showClef) {
-    this.theCanvas = exSpriteCanvas(aCanvas, "exTilesClef01.png", x0, y0); 
+    this.theCanvas = exSpriteCanvas(aCanvas, x0, y0); 
     this.notes = exNoteList; 
     this.tilesPerSec = tilesPerSec;
     this.key = aKey;
     
     if (showClef) {
-        this.offset = 7;
+        this.offset = 6;
     } else {
         this.offset = 3; 
     }

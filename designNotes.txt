@@ -80,6 +80,8 @@ Don't try to get it all working at once, of course.
 
 Earlier considerations: 
 
+
+
 How to compose with short inputs and randomness. 
 
 Music is sound structured like language. 
@@ -89,6 +91,8 @@ But not so much that there are not too many choices. Like language!
 Music has structure that is not exposed except over time. 
 The structures I am aware of seem pretty trivial: interpolation, alternation, 
 arithmetic progression. So I can get good results soon? Hah. 
+
+
 
 Music Theory Choices: 
 
@@ -116,9 +120,9 @@ without dealing with why they are in the work.
 
 Presentation and playback objects
 
-The timer object encapsulates beat and measure. It's the metronome object. 
+The metronome object encapsulates beat and measure. 
 Other objects respond with event lists, given a time range; 
-timer knows what time it is now. 
+Metronome knows what time it is now. 
 
 The deck object is a pseudorandom number generator. 
 Compositions using the deck will be able to randomly produce the same effect 
@@ -132,6 +136,40 @@ That seems like a nice way to reduce the number of arbitrary decisions.
 
 There are various display objects: tab, clef, a metronome, sound, ... 
 
+
+
+
+Time scales
+
+A measure is 4-32 beats; long enough to present a pattern that repeats intelligibly. 
+An "arc" is a set of 4-16 measures that repeat a pattern, but vary it interestingly. 
+There is tension between savoring the pattern and being monotonous. 
+
+Compositions are sets of interrelated arcs. A song on the radio has 3-5 arcs: intro,
+verse, bridge, exit. Blues songs can have 2. A Mozart sonata will have ~1500 beats, 
+~300 measures, and ~40 arcs. A Sor exercise usually has 1 or 2. A techno piece will 
+have 10, overlapping, differing by adding and subtracting single motifs 
+every 4 measures-- ugh!
+
+Arcs in a composition almost always share rhythms. The extent to which invention
+happens in rhythm is culturally fraught. 
+
+So a composition is going to start with a set of motifs and use them to generate
+a list of notes. The motifs will be generated from an overlapping set of keys, 
+chords, and lines. 
+
+exArcs take subsets of a composition's motifs, and use that subset to generate notes. 
+The composition is then just an assignment of motifs and time ranges to arcs; 
+a compositional form is just some loose rules about that assignment: song, blues, 
+exercise, minuet, gavotte, sonata. 
+
+There will be more to this: arcs are built to last ~500 beats. Symphonies will 
+want more structure, but I'm here to make exercises. I suspect that I am incapable 
+of emotionally connecting with symphonic structure, and that those who claim to be,
+might just be engaging in intellectual/social posturing. 
+
+I really like the idea of a set of compositions consisting only of events distributed
+over 256 beats. It seems... tractable! 
 
 
 

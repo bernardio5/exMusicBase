@@ -1,6 +1,16 @@
 
+// Motifs are notelists and an opration that modifies them. 
+// The operation uses a deck and one 0->1 argument as addl input. 
+// Motifs enabole Mixers to move noteLists about controllably. 
 
-function exMotif(aDeck, aChord, aLine, aType) { 
+// Example operation: transpose 
+// To do this, the motif turns key into 0-12 tonics
+// then each note is mapped from a base to the new
+
+// repeat n times. play at half-speed.
+// play backwards. 
+
+function exMotif() { 
     this.chord = new exChord(); 
     this.chord.copy(aChord); 
     

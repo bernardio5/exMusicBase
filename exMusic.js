@@ -715,7 +715,6 @@ function exTunedHand() {
     this.acrossBase = -1;   // if !=-1, the across finger is on all strings greater than this. 
 
     this.setToTuning(0); 
-
     // the notes one can reach with this tuning and this hand. 
     this.available = new exNoteList(); 
 }
@@ -905,11 +904,8 @@ exDeck.prototype = {
 ///////////////////////////////////////// line
 ///////////////////////////////////////// line
 ///////////////////////////////////////// line
-
-
-
 /////////////////  exLine excapsulates a repeated bit of drumming. 
-///////////////// many lines make a rhythm. 
+///////////////// one or more lines make a rhythm. 
 
 // the timer object is the home of the tempo-- the beats per second. 
 // it also has a "measure" length, but lines and rhythms ignore it. 
@@ -1135,17 +1131,22 @@ exLine.prototype = {
 
 
 
-///////////////////////////////////////// signature
-///////////////////////////////////////// signature
-///////////////////////////////////////// signature
-///////////////////////////////////////// signature
-///////////////////////////////////////// signature
-// beats per minute, beat intervals
-// utilities for dividing up time, and tracking it
 
-function exSignature(bpMin, bpMeas, measCt, t, dt) { 
-    this.t = t; 
-    this.dt = dt; 
+////////////////////////////////////////////////// 
+////////////////////////////////////////////////// exMetronome
+////////////////////////////////////////////////// 
+////////////////////////////////////////////////// 
+
+// it's a metronome, b/c it tracks beats and measures. 
+// set t and dt; calls to "update" add dt to t. 
+// various statistics are maintained
+// didCrossBeat and dcMeasure become briefly true when that happens, 
+// and beatFraction and measureFraction go from 1->0 and then sawtooth back up. 
+// also lets you compute t for beat and measure starts. 
+
+function exMetronome(msPerUpdate, bpMin, bpMeas, measCt) { 
+    this.t = 0.0;
+    this.dt = msPerUpdate / 1000.0; 
     
     this.beatsPerMinute = bpMin; 
     this.beatInterval = 60.0/bpMin; // sec/min * min/bt = sec/bt 
@@ -1163,19 +1164,17 @@ function exSignature(bpMin, bpMeas, measCt, t, dt) {
     this.lastMeasureTime = 0.0; 
     this.measureFraction = 0.0;     
 
-
     this.measureCount = measCt; 
     this.workDuration = this.measureInterval * measCt;  
     this.repeats = true; 
-    // t is time since beginning of work. 
     this.workFraction = this.t/this.workDuration; 
 }
 
 
-exSignature.prototype = { 
+exMetronome.prototype = {
     copy: function (it) {  
-        this.t = it.t;
-        this.dt = it.dt; 
+        this.t                  = it.t; 
+        this.dt                 = it.dt; 
 
         this.beatsPerMinute     = it.beatsPerMinute;
         this.beatInterval       = it.beatInterval;
@@ -1197,11 +1196,11 @@ exSignature.prototype = {
         this.workDuration = it.workDuration; 
         this.repeats = it.repeat; 
         this.workFraction = it.workFraction; 
-    }, 
+    },
 
 
     restart: function() { 
-        this.tmr.t = 0.0;
+        this.t = 0.0;
         this.measureCount = 0; 
         this.lastMeasureTime = 0.0; 
         this.lastBeatTime = 0.0; 
@@ -1210,7 +1209,7 @@ exSignature.prototype = {
 
     // returns void; use didCross to get stuff
     recalculate: function() {
-        this.beatFraction = (this.tmr.t- this.lastBeatTime)/this.beatInterval; 
+        this.beatFraction = (this.t- this.lastBeatTime)/this.beatInterval; 
         if (this.beatFraction>1.0) { 
             this.didCrossBeat = true; 
             this.beatCounter = Math.floor(this.tmr.t / this.beatInterval); 
@@ -1244,7 +1243,7 @@ exSignature.prototype = {
     },
 
 
-    advance: function() { 
+    update: function() { 
         this.timtr=e += this.dt; 
         this.recalculate(); 
     },
@@ -1273,8 +1272,15 @@ exSignature.prototype = {
     beatOfNthMeasure: function(n) { 
         return Math.floor(b/this.beatsPerMeasure); 
     }
+};
 
-}
+
+
+
+
+
+
+
 
 
 ///////////////////////////////////////////////////
@@ -1318,6 +1324,9 @@ exCircle.prototype = {  // seems like these should all be external-- stateless?
         return this.around(n,3); 
     }
 }
+
+
+
 
 
 ///////////////////////////////////////// exTextTab
@@ -1372,7 +1381,7 @@ exTextTab.prototype = {
         var ind = 6 + x + (y*95); 
         res = this.grid.substr(0, ind) + cha + this.grid.substr(ind+len);
         this.grid = res; 
-        console.log("plot: ("+ x + ',' + y + ')->' + ind);
+        // console.log("plot: ("+ x + ',' + y + ')->' + ind);
     },
 
 
@@ -1386,7 +1395,7 @@ exTextTab.prototype = {
             rowRow = (that.strCount - note.string); 
             // start time of that row
             rowt = whichRow / that.rowsPerSecond; 
-            console.log('plotNote: string:' + note.string + ' fret:' + note.fret + ' row:' +whichRow);
+            //console.log('plotNote: string:' + note.string + ' fret:' + note.fret + ' row:' +whichRow);
             x = 3 + Math.floor((note.t-rowt)*that.columnsPerSecond); 
             y = 1 + (that.rowHeight * whichRow) + rowRow;
             str = '' + note.fret;

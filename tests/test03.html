@@ -2,7 +2,7 @@
 <head>
 	<title>exMusicBase/tests</title>
 	<script type="text/javascript" src="../exMusic.js"></script>  
-	<script type="text/javascript" src="../exSprite.js"></script>  
+	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
 
 	function redraw() { 
@@ -10,7 +10,7 @@
 
 		thePre = document.getElementById("exTabHolder");
 		theHand = new exTunedHand(); 
-		tab = new exTextTab("test 3: sprites", theHand, 6.0); 
+		tab = new exTextTab("test 3: tab sprites", theHand, 6.0); 
 
 		theNote = new exNote(); 		
 		theNote.midi = 40; 
@@ -64,8 +64,9 @@
 		tab.plotNoteList(theList); 
 		thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
 				
-
-		theCanvas = document.getElementById("mainCanvas");
+		var theCanvas = document.getElementById("mainCanvas");
+		var theTab = new exSpriteTabRow(theCanvas, theList, 0,4, 2, theHand, false);
+		theTab.redrawer(); 
 
 	}
 

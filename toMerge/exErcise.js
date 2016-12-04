@@ -1,43 +1,27 @@
 
 
-////////////////////////////////// exErciseInit: arguments and defaults     
-// to make an exErcise, make an init, tweak it, and give it to "new eXercise(init)""
-function exErciseInit() {  
-    // timer things
-    this.bpMeasure = 4;
-    this.bpMinute = 60.0;
-    this.measCt = 64;
-    this.msPerUpdate = 50;
-
-    // key
-    this.tonic = 60;
-    this.mode = 0; 
-    this.tuning = 0; // for tuned hand
-
-    this.exercise = 0;  // note generator selector
-    this.argHi = 0; // high argument nibble
-    this.argLo = 0; // low arg nib
-    this.seed = 0; // for exDeck
-
-    this.canvas = 0; // need a canvas; might as well!
-    this.notes = -1; 
-    this.score = 0; 
-}
 
 
 
 ///////////////////////////////////
 /////////////////////////////////// exErcise: enough infrastructure; make some notes!!
 ///////////////////////////////////
+// this stuff is too high-level, probably. 
+//
 
 //////////// init; calls generator 
-function exErcise(initr) { 
-   // debugger;
-    this.timer = new exTimer(initr.bpMinute, initr.bpMeasure, initr.msPerUpdate, initr.measCt);
-    this.displ = new exTabDisplay(initr.canvas, this.timer); 
-    this.hand = new exTunedHand(); 
-    this.hand.setToTuning(initr.tuning);
+function exErcise(canvas) { 
+    //            beats/min   beats/meas,  ms/update,   measure count
+    this.timer = new exTimer(120.0, 4, 50, 32);
+    this.hand = new exTunedHand();  // guitar, std, 
+    this.deck = new exDeck(); 
 
+    this.tonic = 60;
+    this.mode = 0; 
+    this.exercise = 0;  // note generator selector
+    this.seed = 0; // for exDeck
+
+    this.displ = new exTabDisplay(canvas, this.timer); 
     this.notes = new exNoteList(); 
 
     switch (initr.exercise) {
@@ -85,8 +69,8 @@ exErcise.prototype = {
         nll = subnl.length - 1; 
         tn = aNoteList.tuning;
 
-        this.timer.beatsPerMinute = aNoteList.beatsPerMinute;; 
-        this.timer.beatsPerMeasure = aNoteList.beatsPerMeasure; 
+        this.beatsPerMinute = aNoteList.beatsPerMinute;; 
+        this.beatsPerMeasure = aNoteList.beatsPerMeasure; 
         this.measureCount = aNoteList.notes[nll].m; 
         this.timer.restart(); 
 
