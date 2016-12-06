@@ -342,7 +342,7 @@ exNoteList.prototype = {
 // set tonic and mode; you have a key
 
 // the octave of the tonic does not affect the key. 
-
+// to do: nomenclature and treatment of greek modes & adding others
 function exKey() {
     this.tonic = 60;  //  Middle C
     this.mode = 0; // major
@@ -352,12 +352,13 @@ function exKey() {
         [ 0, 2,3, 5,7,9,10 ], // dorian
         [ 0, 2,4, 5,6,10   ], // wholetone
         [ 0, 2,3, 6,7,8,10 ], // "hungarian"
-        [ 0, 4,6, 7,11     ], // "chinese"
+        [ 0, 4,6, 7,11     ], // "chinese"  // sorry! old sources
         [ 0, 1,3, 5,7,9,10 ],  // "javan"
         [ 0,1,2,3,4,5,6,7,8,9,10,11 ]
     ];
     this.mode = 0; // major
     this.modeLen = 7; // |major|
+    this.scale = [0,2,4,5,7,9,11];
     this.notes = new exNoteList(); // once the constants are set, this is filed in
 }
 /*
@@ -377,6 +378,7 @@ exKey.prototype =  {
         var i, md, baseF; 
         baseF = this.tonic %12;
         md = this.modes[this.mode];
+        this.scale = this.modes[this.mode];
         this.modeLen = this.modes[this.mode].length;
         this.notes.clear();
 
@@ -437,12 +439,34 @@ exKey.prototype =  {
         return res; 
     },
 
-    // this is bullshit. use JSON.
+
+    // this is silly. use JSON.
     report: function() { 
         console.log("<exKey>"); 
         console.log("</exKey>"); 
     },
 
+
+    // use this to add a control to an HTML doc
+    getHTMLForMode: function(tag) { 
+        var res = "<select id='exMode" + tag +"'>";
+        res = res + "<option value='0' selected>Major</option>";
+        res = res + "<option value='1'>Minor</option>";
+        res = res + "<option value='2'>Dorian</option>";
+        res = res + "<option value='3'>Whole</option>";
+        res = res + "<option value='4'>Hungarian</option>";
+        res = res + "<option value='5'>Pentatonic</option>";
+        res = res + "<option value='6'>Heptatonic</option>";
+        res = res + "<option value='7'>12</option>"; // seriously? kinda moots key.
+        res = res + "</select>";
+        return res; 
+    },
+
+
+    getValueForMode: function(doc) {
+        var res = parseInt(doc.getElementById('exMode').value); 
+        return res; 
+    },
 
     tester: function() { 
 

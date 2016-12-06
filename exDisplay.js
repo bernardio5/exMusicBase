@@ -221,7 +221,7 @@ exSpriteTabRow.prototype = {
 ////////////////////////////////////////////////////////////////////
 // draws one line of a score in, in (treble) clef notation, from a sprite sheet. 
 // additional variables say whether to include the clef, start time, pace, and ...?
-// disclaimer: known flaws.
+// disclaimer: known flaws, noted in code. To do this "properly" is a large project. 
 
 function exSpriteClefRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aKey, showClef)  {
     this.theCanvas = new exSpriteCanvas(aCanvas, x0, y0); 
@@ -238,42 +238,176 @@ function exSpriteClefRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aKey, showClef
     this.startTime = 0.0; 
     this.endTime = this.duration; 
 
-    //               c    c#   d     d#    e    f     f#   g   g#     a   a#   b
+    // Each C is is at height (5.5 - (octave-4)*3.5). The other notes are above their C's.
+    // There are 12 notes from C to the next C.
     this.heights = [ 0.0, 0.0, 1.0,  1.0, 2.0, 3.0,  3.0, 4.0, 4.0,  5.0, 5.0, 6.0 ];
-    this.sharps =  [0, 1, 0,           1, 0, 0,         1, 0, 1,       0, 1, 0 ];
-    this.topLineNotes = [ 71, 75,  78, 82, 85 ]; // the notes above the staff
-    this.bottomLineNotes = [ 50, 47, 43,  40, 36, 33 ]; // below
+    this.decor =   [0, 1, 0,           1, 0, 0,         1, 0, 1,       0, 1, 0 ];
+
+    this.signatureDecor = [0,0,0,0,0,0,0];  // what notes are sharp or flat in key signature
+    this.tendency = 1; // sharps or flats?
+    this.timeNumerator = -1; 
+    this.timeDenominator = 4;
+    this.showTiming = false; 
 }
 
 
+
 exSpriteClefRow.prototype = {
+    // used by the page-formatter object to set this row's span of the work
     setStartTime: function(t) {
         this.startTime = t;
         this.endTime = this.duration +t;
     },
+
+    isIn: function(arr, it) { // returns ar1, minus anything that's in ar2
+        var i, len1; 
+        len1 = arr.length; 
+        for (i=0; i<len1; i=i+1) {
+            if (it===arr[i]) {
+                return true;
+            }
+        }
+        return false; 
+    },
+
+    commonElements: function(ar1, ar2) { // given 2 arrays, return array of elements in both
+        var i, len1, res; 
+        res = [];
+        len1 = ar1.length; 
+        for (i=0; i<len1; i=i+1) {
+            if (this.isIn(ar2, ar1[i])) { 
+                res.add(ar1[i]);
+            }
+        }
+        return res; 
+    },
+
+    subtract: function(ar1, ar2) { // returns ar1, minus anything that's in ar2
+        var i, len1, res; 
+        res = [];
+        len1 = ar1.length; 
+        for (i=0; i<len1; i=i+1) {
+            if (!this.isIn(ar2, ar1[i])) { 
+                res.add(ar1[i]);
+            }
+        }
+        return res; 
+    },
+
+    shifter: function(ar1, shifter) { // returns ar1, with shifter added to everything
+        var i, len1, ith, res; 
+        res = [];
+        len1 = ar1.length; 
+        for (i=0; i<len1; i=i+1) {
+            ith = ar1[i] + shifter; 
+            res.add(ith);
+        }
+        return res; 
+    },
+
+    // convert cmTaken into heights-- but they're all taken! 
+    addTakens: function(toAdd, decorator) {
+        var i, cmHt; 
+        cmHt = [0,0,1, 1,2,3, 3,4,4, 5,5,6];
+        for (i=0; i<12; i=i+1) {
+            if (this.isIn(toAdd, i)) {
+                this.heights[i] = cmHt[i];
+                this.decor[i] = decorator;
+            }
+        }
+    },
+    // want heights like for cm=[0,0,1,1,2,3,3,4,4,5,5,6], or e=[0,0,1,1,2,3,4,4,5,5,6];
+    //  height of spot on clef from C
+    // want decor like for   cm=[0,1,0,1,0,0,1,0,1,0,1,0] or  e=[3,0,3,0,0,3,0,3,0,1,0];
+    //   0:none 1:sharp, 2:flat 3:natural
+
+    // when the key tends sharp
+    // mark heights -- start with all -1
+    //   for each i in naturalTakens, heights[i] = cmHeights[i]
+    //   for each i in naturalRemains, heights[i] = cmHeights[i]
+    //   for each i in sharpNaturalRemains, heights[i] = cmHeights[i]
+
+    // mark decor for natural takens =0
+    //    for each i in naturalTakens, decor[i] = 0; 
+    //   for each i in naturalRemains, decor[i] = 0; draw these black as white
+    //   for each i in sharpNaturalRemains, decor[i] = 3  draw these white as natural
+
+    // for each i st heights[i]=-1
+    //  height[i] = cmHeight[i], decor[i]=
+
+
+    // given a key, compute the heights and decor for each note in the scale
+    setKey: function(aKey) { 
+        var i, tendency; 
+        scaleIn = aKey.scale;
+        whiteKeys= [0,2,4,5,7,9,11]; // on a piano 
+        this.heights = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-1,-1]; // clear them out 
+        this.decor = [0,0,0, 0,0,0, 0,0,0, 0,0,0]; 
+
+        // some notes are already on the white keys
+        naturalTakens = this.commonElements(scaleIn, cmTaken); // scale notes already on white keys 
+        this.addTakens(naturalTakens, 0);  // marks all these as drawn same as for CM
+                // note: this screws up G#M, but I can't play that anyway. :P
+                //   need provision for keys/modes
+        // these notes are on black keys
+        naturalRemains = this.subtract(scaleIn, naturalTakens); // leftovers are on black keys
+
+        unsharpNaturalRemains = this.shifter(naturalRemains, -1);  // shift down
+        unflatNaturalRemains = this.shifter(naturalRemains, 1); // shift up all black keys-- to white
+        unsharpOverlap = this.commonElements(natualTakens, unsharpNaturalRemains); 
+        unflatOverlap = this.commonElements(natualTakens, unflatNaturalRemains); 
+        if (unsharpOverlap.length ===0) {
+            this.signatureDecor = naturalRemains; // copy this, tho
+            tendency = 1;
+            this.addTakens(naturalRemains, 0);
+            this.addTakens(unSharpNaturalRemains, 3);
+        } else { // what about G#M?!?! Shaddup.
+            this.signatureDecor = naturalRemains; // copy this, tho
+            tendency = -1;
+            this.addTakens(unSharpNaturalRemains, 3);
+        }
+        for (i=0; i<12; i=i+1) { 
+            if (this.heights[i]===-1) {
+                if (this.tendency===1) { // sharpish key
+                    this.heights[i] = this.heights[i-1];
+                    this.decor[i] = 1;
+                }
+                if (this.tendency===-1) {  // flattish
+                    this.heights[i] = this.heights[i-1];
+                    this.decor[i] = 2;
+                }
+            }
+        }
+
+    },
+
+
+    topLineNotes: [ 71, 75,  78, 82, 85 ], // the notes above the staff
+    bottomLineNotes: [ 53, 50, 47, 43,  40, 36, 33 ], // below
 
     // draw the note on the page
     // we could save this and recalc only when the note changes-- meh. 
     drawNote: function(theNote) { 
         var placeInScale, octave, isSharp, base, noteHeight, gx, i; 
     // debugger;
-        if ((theNote.midi<24)||(theNote.midi>88)) { return; }  // clef note range; constants
+        if ((theNote.midi<33)||(theNote.midi>88)) { return; }  // clef note range; constants
 
         placeInScale = (theNote.midi %12); 
         octave = Math.floor(((theNote.midi-placeInScale))/12.0);
-        isSharp = this.sharps[placeInScale]; 
         base = 3.5*(octave-4);
         noteHeight = 5.5-(base + (this.heights[placeInScale]*.5));
     
         gx = ((theNote.t-this.startTime) * this.tilesPerSec)+this.offset; 
         this.theCanvas.drawStretchedSprite(gx,noteHeight, 9,6, 1,1, 1.75,1.75); 
         
-        if (isSharp==1) { 
-            this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 7,6, 1,1, 1.4,1.4); 
+        switch (this.decor[placeInScale]) { 
+            case 1: this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 7,6, 1,1, 1.4,1.4); break;
+            case 2: this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 11,0, 1,1, 1.4,1.4); break;
+            case 3: this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 10,13, 1,1, 1.4,1.4); break;
         }
         
         // note above staff? draw intevening lines
-        for (i=0; i<5; i=i+1) {
+        for (i=0; i<6; i=i+1) {
             if (theNote.midi > this.topLineNotes[i]) {
                 this.theCanvas.drawStretchedSprite(gx, -1.05-i, 1,8, 1,1, 1.75,1.2);
             }
@@ -282,7 +416,7 @@ exSpriteClefRow.prototype = {
         //debugger;
         for (i=0; i<6; i=i+1) {
             if (theNote.midi<this.bottomLineNotes[i]) {
-                this.theCanvas.drawStretchedSprite(gx,5.95+i,  1,8, 1,1,  1.75,1.2);
+                this.theCanvas.drawStretchedSprite(gx,4.95+i,  1,8, 1,1,  1.75,1.2);
             }
         }    
     },
@@ -292,18 +426,26 @@ exSpriteClefRow.prototype = {
         var i, p; 
         this.theCanvas.clear(); 
 
-        for (i=0; i<6; i=i+1) {
+        for (i=0; i<5; i=i+1) {
             // measure markings?
             this.theCanvas.drawStretchedSprite(0,i,  1,8,  1,1,  this.theCanvas.tileW,1);  // lines
         } 
         if (this.showClef) {
             // key markings? time markings? 
-            this.theCanvas.drawStretchedSprite(0,0.05,  0, 1,  2, 5, 1.5,1.5); // clef and lines
+            this.theCanvas.drawStretchedSprite(0,-1.0,  0, 1,  2, 5, 1.5,1.5); // clef
+
+            if (this.timeNumerator>-1) { 
+                this.theCanvas.drawStretchedSprite(4,0.2,  this.timeNumerator,0, 1,1, 2.5,2.5); // numerator
+                this.theCanvas.drawStretchedSprite(4,2.2,  this.timeDenominator,0, 1,1, 2.5,2.5); // denominator
+            }
+
+            for
         }
         // plucks!
         for (i=0; i<this.notes.length(); i=i+1) {
             p = this.notes.nth(i); 
             if ((this.startTime<p.t)&&(p.t<=this.endTime)) { 
+                p.midi = 30+i; 
                 this.drawNote(p);
             }
         }
