@@ -65,8 +65,16 @@
 		thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
 				
 		var theCanvas = document.getElementById("mainCanvas");
-		var theTab = new exSpriteClefRow(theCanvas, theList, 0,6, 2, key1, true);
-		theTab.redrawer(); 
+		var theClef = new exSpriteClefRow(theCanvas, theList, 0,6, 2, key1, true);
+		theClef.redrawer(); 
+
+		var theMet = new exMetronome(30, 120, 4, 16); 
+		var theLine = new exSpriteTimeLine(theCanvas, theList, 0,2, 2, theMet, true);
+		theLine.redrawer(); 
+
+		theClef.clearAll(); 
+		theClef.redrawer(); 
+		theLine.redrawer(); 
 
 	}
 
