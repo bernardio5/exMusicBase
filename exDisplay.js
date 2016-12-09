@@ -484,7 +484,7 @@ exSpriteClefRow.prototype = {
         for (i=0; i<this.notes.length(); i=i+1) {
             p = this.notes.nth(i); 
             if ((this.startTime<p.t)&&(p.t<=this.endTime)) { 
-                p.midi = 30+i; 
+                //p.midi = 30+i; // test code 
                 this.drawNote(p);
             }
         }

@@ -4,8 +4,9 @@
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
+	var theClef, theLine; 
 
-	function redraw() { 
+	function starter() { 
 		var thePre, theHand, tab, theNote, note2, note3, theList, key1, key2, i, j, t;
 
 		thePre = document.getElementById("exTabHolder");
@@ -65,13 +66,17 @@
 		thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
 				
 		var theCanvas = document.getElementById("mainCanvas");
-		var theClef = new exSpriteClefRow(theCanvas, theList, 0,6, 2, key1, true);
+		theClef = new exSpriteClefRow(theCanvas, theList, 0,6, 2, key1, true);
 		theClef.redrawer(); 
 
 		var theMet = new exMetronome(30, 120, 4, 16); 
-		var theLine = new exSpriteTimeLine(theCanvas, theList, 0,2, 2, theMet, true);
+		theLine = new exSpriteTimeLine(theCanvas, theList, 0,2, 2, theMet, true);
 		theLine.redrawer(); 
 
+		setInterval(redraw,500);  
+	}
+
+	function redraw() {
 		theClef.clearAll(); 
 		theClef.redrawer(); 
 		theLine.redrawer(); 
@@ -80,7 +85,7 @@
 
 	</script>
 </head>
-<body  onLoad="redraw();">
+<body  onLoad="starter();">
 	<canvas id="mainCanvas" width="782" height="320"></canvas> 
 <br> 
 	<div id="exTabHolder"></div>

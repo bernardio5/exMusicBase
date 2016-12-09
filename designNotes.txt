@@ -1,4 +1,7 @@
-Design notes
+Design notes:
+
+
+-1) The library comes in 3 parts. exMusic contains classes for manipulating notes, and exDisplay has classes for displaying them (generally in web pages). exTiles is used by exDisplay. exDisplay requires exMusic. 
 
 0) I'm working in Safari. I am not humoring Chrome or IE. I'll get to firefox. 
 
