@@ -189,6 +189,12 @@ exNoteList.prototype = {
 
 
     nth: function(which) {  
+                var i, j, k; 
+        i = which; 
+        j = this.ns.length; 
+        k = i%j; 
+
+
         return this.ns[(which % this.ns.length)]; 
     },
 
@@ -360,6 +366,7 @@ function exKey() {
     this.modeLen = 7; // |major|
     this.scale = [0,2,4,5,7,9,11];
     this.notes = new exNoteList(); // once the constants are set, this is filed in
+    this.HTMLTag = "XX"; // enables multiple key controls to have unique HTML/DOM id's
 }
 /*
     this.modes = [
@@ -378,13 +385,13 @@ exKey.prototype =  {
         var i, md, baseF; 
         baseF = this.tonic %12;
         md = this.modes[this.mode];
-        this.scale = this.modes[this.mode];
         this.modeLen = this.modes[this.mode].length;
         this.notes.clear();
 
         for (i=0; i<20; i=i+1) { 
             for (j=0; j<this.modeLen; j=j+1) {
                 this.notes.addNew(-1.0, baseF + (i*12) + md[j]);
+                this.scale[j] = (md[j] + baseF)%12; 
             } 
         }
     },
@@ -448,30 +455,55 @@ exKey.prototype =  {
 
 
     // use this to add a control to an HTML doc
-    getHTMLForMode: function(tag) { 
-        var res = "<select id='exMode" + tag +"'>";
-        res = res + "<option value='0' selected>Major</option>";
-        res = res + "<option value='1'>Minor</option>";
-        res = res + "<option value='2'>Dorian</option>";
-        res = res + "<option value='3'>Whole</option>";
-        res = res + "<option value='4'>Hungarian</option>";
-        res = res + "<option value='5'>Pentatonic</option>";
-        res = res + "<option value='6'>Heptatonic</option>";
-        res = res + "<option value='7'>12</option>"; // seriously? kinda moots key.
+    getHTMLForModeControl: function(tag) { 
+        this.HTMLTag = tag; 
+        var res = "Fundamental / Octave / Mode:";
+        res = res + "<select id='exKeyFun"+tag+"'>";
+        res = res + " <option value='0' selected>C</option>";
+        res = res + " <option value='1'>C#</option>";
+        res = res + " <option value='2'>D</option>";
+        res = res + " <option value='3'>D#</option>";
+        res = res + " <option value='4'>E</option>";
+        res = res + " <option value='5'>F</option>";
+        res = res + " <option value='6'>F#</option>";
+        res = res + " <option value='7'>G</option>";
+        res = res + " <option value='8'>G#</option>";
+        res = res + " <option value='9'>A</option>";
+        res = res + " <option value='10'>A#</option>";
+        res = res + " <option value='11'>B</option>";
         res = res + "</select>";
+        res = res + "<select id='exKeyOct"+tag+"'>";
+        res = res + " <option value='36'>2</option>";
+        res = res + " <option value='48'>3</option>";
+        res = res + " <option value='60' selected>4</option>";
+        res = res + " <option value='72'>5</option>";
+        res = res + "</select>";
+        res = res + "<select id='exKeyMode" + tag +"'>";
+        res = res + " <option value='0' selected>Major</option>";
+        res = res + " <option value='1'>Minor</option>";
+        res = res + " <option value='2'>Dorian</option>";
+        res = res + " <option value='3'>Whole</option>";
+        res = res + " <option value='4'>Hungarian</option>";
+        res = res + " <option value='5'>Pentatonic</option>";
+        res = res + " <option value='6'>Heptatonic</option>";
+        res = res + " <option value='7'>12</option>"; // seriously? kinda moots key.
+        res = res + "</select><button onclick='setParameters();'' href='javascript:;''>Go</button>";
         return res; 
     },
 
 
-    getValueForMode: function(doc) {
-        var res = parseInt(doc.getElementById('exMode').value); 
-        return res; 
-    },
-
-    tester: function() { 
-
+    setModeFromHTMLControl: function(doc) {
+        var tag, fun, oct; 
+        fun = 0; oct = 48; this.mode = 0; // defaults in case of error
+        tag = "exKeyFun"+ this.HTMLTag;
+        fun = parseInt(doc.getElementById(tag).value); 
+        tag = "exKeyOct"+ tag;
+        oct = parseInt(doc.getElementById(tag).value); 
+        this.tonic = oct+fun;
+        tag = "exKeyMode"+ tag;
+        this.mode = parseInt(doc.getElementById(tag).value); 
+        this.recalculate();  
     }
-
 }
 
 
@@ -870,6 +902,7 @@ function exDeck() {
     this.sz = 256; 
     this.factor = 1.0/256.0;
     this.place = 0; 
+    this.HTMLTag = "XX";
 }
 
 exDeck.prototype = {
@@ -893,6 +926,58 @@ exDeck.prototype = {
     nextF: function() {
         var res = this.factor;
         res *= this.nextI(); 
+        return res; 
+    },
+
+    // for use with deck
+    getHTMLForSeed: function(tag) { 
+        this.HTMLTag = tag; 
+        var res = "<select id='exDeckHi"+tag+"'>";
+        res = res + "<option value='0'>0</option>";
+        res = res + "<option value='1'>1</option>";
+        res = res + "<option value='2'>2</option>";
+        res = res + "<option value='3'>3</option>";
+        res = res + "<option value='4'>4</option>";
+        res = res + "<option value='5'>5</option>";
+        res = res + "<option value='6'>6</option>";
+        res = res + "<option value='7' selected>7</option>";
+        res = res + "<option value='8'>8</option>";
+        res = res + "<option value='9'>9</option>";
+        res = res + "<option value='10'>10</option>";
+        res = res + "<option value='11'>11</option>";
+        res = res + "<option value='12'>12</option>";
+        res = res + "<option value='13'>13</option>";
+        res = res + "<option value='14'>14</option>";
+        res = res + "<option value='15'>15</option>";
+        res = res + "</select>.";
+        res = res + "<select id='exDeckLo"+tag+"'>";
+        res = res + "<option value='0'>0</option>";
+        res = res + "<option value='1'>1</option>";
+        res = res + "<option value='2'>2</option>";
+        res = res + "<option value='3'>3</option>";
+        res = res + "<option value='4'>4</option>";
+        res = res + "<option value='5' selected>5</option>";
+        res = res + "<option value='6'>6</option>";
+        res = res + "<option value='7'>7</option>";
+        res = res + "<option value='8'>8</option>";
+        res = res + "<option value='9'>9</option>";
+        res = res + "<option value='10'>10</option>";
+        res = res + "<option value='11'>11</option>";
+        res = res + "<option value='12'>12</option>";
+        res = res + "<option value='13'>13</option>";
+        res = res + "<option value='14'>14</option>";
+        res = res + "<option value='15'>15</option>";
+        res = res + "</select>.";
+        return res; 
+    },
+    getValueForSeed: function() {
+        var tag, exHi, exLo, res; 
+        tag = "exDeckHi" + this.HTMLTag;
+        res = 0; // this is not good error-checking...
+        exHi = parseInt(document.getElementById(tag).value); 
+        tag = "exDeckLo" + this.HTMLTag;
+        exLo = parseInt(document.getElementById(tag).value); 
+        res = exHi * 16 + exLo; 
         return res; 
     },
 
@@ -1003,7 +1088,7 @@ exMetronome.prototype = {
         this.beatFraction = (this.t- this.lastBeatTime)/this.beatInterval; 
         if (this.beatFraction>1.0) { 
             this.didCrossBeat = true; 
-            this.beatCounter = Math.floor(this.tmr.t / this.beatInterval); 
+            this.beatCounter = Math.floor(this.t / this.beatInterval); 
             this.lastBeatTime = this.beatCounter * this.beatInterval; 
             this.beatFraction = (this.t- this.lastBeatTime)/this.beatInterval; 
         } else { 
@@ -1350,123 +1435,6 @@ exCircle.prototype = {  // seems like these should all be external-- stateless?
 }
 
 
-
-
-
-///////////////////////////////////////// exTextTab
-///////////////////////////////////////// exTextTab
-///////////////////////////////////////// exTextTab
-///////////////////////////////////////// exTextTab
-///////////////////////////////////////// exTextTab
-// given a notelist, and a tuned hand, and maybe a signature, 
-// make a grid of characters that can be printed or viewed
-
-// the string "this.grid" is 96 characters wide x 60 lines 
-
-
-function exTextTab(titleStr, tunedHand, columnsPerSecond) { 
-    this.grid = ""; 
-    this.titleString = titleStr;
-    this.hand = tunedHand; 
-    this.strCount = this.hand.strCount; 
-    this.rowHeight = this.strCount +2;  // "row"=line of tab 
-    this.rowsPerPage = Math.floor(60.0 / this.rowHeight);
-    this.blankPage(); 
-
-    this.columnsPerNote = 3; // characters it takes to show a note
-    this.columnsPerSecond = columnsPerSecond;
-    this.rowsPerSecond = columnsPerSecond / 85.0;  // 90 columns/line
-    this.pageDuration = this.rowsPerPage / this.rowsPerSecond;
-
-    return this; 
-}
-
-
-exTextTab.prototype = { 
-    // str and fill are strings. add fills to str until its length is len.
-    fillout: function(str, fill, len) { 
-        var i, inLen, fillLen, res; 
-        inLen = str.length; 
-        fillLen = fill.length; 
-        res = str; 
-        for (i=inLen; i<(len-fillLen); i=i+fillLen) { 
-            res = res + fill; 
-        } 
-        return res;
-    },
-
-
-    // put string cha in column x, row y of this.grid
-    plot: function(x, y, cha) {
-        var len = cha.length;
-        // must not write out of bounds..
-        if ((x<-1)||(x>(88-len))||(y<0)||(y>60)) { return; } 
-        // especially, don't overwrite the CR at EOL
-        var ind = 6 + x + (y*95); 
-        res = this.grid.substr(0, ind) + cha + this.grid.substr(ind+len);
-        this.grid = res; 
-        // console.log("plot: ("+ x + ',' + y + ')->' + ind);
-    },
-
-
-    // given an exNote, assuming this page starts at t=0
-    plotNote: function(that, note) {
-        var x, y, str, whichRow, rowt, rowRow; 
-//debugger;
-        if ((note.string!=-1)&&(note.t>=0.0)&&(note.t<that.pageDuration)) {
-            // which row to put the note on
-            whichRow = Math.floor(note.t * that.rowsPerSecond);
-            rowRow = (that.strCount - note.string); 
-            // start time of that row
-            rowt = whichRow / that.rowsPerSecond; 
-            //console.log('plotNote: string:' + note.string + ' fret:' + note.fret + ' row:' +whichRow);
-            x = 3 + Math.floor((note.t-rowt)*that.columnsPerSecond); 
-            y = 1 + (that.rowHeight * whichRow) + rowRow;
-            str = '' + note.fret;
-            that.plot(x,y,str); 
-        }
-    },
-
-
-    // sets "this.grid" to contain empty lines
-    blankPage: function() { 
-        var i, j, k, scr;
-        var aLine, aRow, aBlankLine, rowCt;
-        var aNote = new exNote(); 
-
-        // make sure title line is 96 chars!
-        scr = "     " + this.titleString;
-        scr = this.fillout(scr, ' ', 95);
-        scr = scr + '\n';
-
-        aLine = this.fillout('-', '-', 93); 
-        aLine += '\n';
-        aBlankLine = this.fillout(' ', ' ', 95); 
-        aBlankLine += '\n';
-
-        aRow = aBlankLine;
-        for (i=0; i<this.strCount; i=i+1) {
-            aNote.midi = this.hand.strings[i];
-            aRow = aRow + aNote.letter() + aLine; 
-        }
-        aRow += aBlankLine; 
-        
-        // make a blank grid of lines
-        for (i=0; i<this.rowsPerPage; i=i+1) {
-            scr = scr + aRow;
-        }
-        this.grid = scr; 
-        this.rowCt = rowCt; 
-    },
-
-
-    plotNoteList: function(nl) { 
-        this.blankPage(); 
-        // does not work; plotNote loses track of this
-        nl.apply(this, this.plotNote);
-    }
-
-}
 
 
 

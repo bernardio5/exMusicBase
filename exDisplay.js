@@ -286,7 +286,7 @@ exSpriteClefRow.prototype = {
         len1 = ar1.length; 
         for (i=0; i<len1; i=i+1) {
             if (this.isIn(ar2, ar1[i])) { 
-                res.add(ar1[i]);
+                res.push(ar1[i]);
             }
         }
         return res; 
@@ -298,7 +298,7 @@ exSpriteClefRow.prototype = {
         len1 = ar1.length; 
         for (i=0; i<len1; i=i+1) {
             if (!this.isIn(ar2, ar1[i])) { 
-                res.add(ar1[i]);
+                res.push(ar1[i]);
             }
         }
         return res; 
@@ -310,7 +310,7 @@ exSpriteClefRow.prototype = {
         len1 = ar1.length; 
         for (i=0; i<len1; i=i+1) {
             ith = ar1[i] + shifter; 
-            res.add(ith);
+            res.push(ith);
         }
         return res; 
     },
@@ -372,8 +372,8 @@ exSpriteClefRow.prototype = {
         var sharpOverlap, flatOverlap, direction, naturals, i, len, n; 
         scaleIn = aKey.scale;                       // 3.a
         CMwhites = [0,2,4,5,7,9,11];                // 3.c.i
-        whites =    this.commonElements(scaleIn, cmTaken); // 3.c.ii
-        blacks =    this.subtract(CMwhites, whites);// 3.c.iii
+        whites =    this.commonElements(scaleIn, CMwhites); // 3.c.ii
+        blacks =    this.subtract(scaleIn, whites);// 3.c.iii
         unsharps =  this.shifter(blacks, -1);       // 3.c.iv
         unflats =   this.shifter(blacks, 1);        // 3.c.v
 
@@ -388,7 +388,7 @@ exSpriteClefRow.prototype = {
         }
 
         this.decor = [0,0,0, 0,0,0, 0,0,0, 0,0,0];  // 3.c.vii 
-        this.sig = [0,0,0, 0,0,0, 0];
+        this.sig = [0,0,0, 0,0,0, 0,0,0, 0,0,0];
         this.heights = [0,-1,1,  -1,2,3,  -1,4,-1,  5,-1,6]; // 3.c.viii
 
         this.caster(this.sig, naturals, direction); // 3.c.ix
@@ -405,33 +405,30 @@ exSpriteClefRow.prototype = {
         }
 
         for (i=0; i<12; i=i+1) {                    // 3.c.xii
-            if (heights[i]===-1) { 
+            if (this.heights[i]===-1) { 
                 if (direction===1) {
-                    heights[n] = heights[n-1]; 
+                    this.heights[i] = this.heights[i-1]; 
                 } else {
-                    heights[n] = heights[n+1];
+                    this.heights[i] = this.heights[i+1];
                 }
-                decor[n] = direction; 
+                this.decor[i] = direction; 
             }
         }
 
     },
 
 
-    topLineNotes: [ 71, 75,  78, 82, 85 ], // the notes above the staff
-    bottomLineNotes: [ 53, 50, 47, 43,  40, 36, 33 ], // below
-
-    // draw the note on the page
+     // draw the note on the page
     // we could save this and recalc only when the note changes-- meh. 
     drawNote: function(theNote) { 
         var placeInScale, octave, isSharp, base, noteHeight, gx, i; 
     // debugger;
-        if ((theNote.midi<33)||(theNote.midi>88)) { return; }  // clef note range; constants
+        if ((theNote.midi<33)||(theNote.midi>84)) { return; }  // clef note range; constants
 
         placeInScale = (theNote.midi %12); 
         octave = Math.floor(((theNote.midi-placeInScale))/12.0);
         base = 3.5*(octave-4);
-        noteHeight = 5.5-(base + (this.heights[placeInScale]*.5));
+        noteHeight = 4.5-(base + (this.heights[placeInScale]*.5));
     
         gx = ((theNote.t-this.startTime) * this.tilesPerSec)+this.offset; 
         this.theCanvas.drawStretchedSprite(gx,noteHeight, 9,6, 1,1, 1.75,1.75); 
@@ -443,15 +440,15 @@ exSpriteClefRow.prototype = {
         }
         
         // note above staff? draw intevening lines
-        for (i=0; i<6; i=i+1) {
-            if (theNote.midi > this.topLineNotes[i]) {
+        for (i=0; i<5; i=i+1) {
+            if (noteHeight < (-1-i)) {
                 this.theCanvas.drawStretchedSprite(gx, -1.05-i, 1,8, 1,1, 1.75,1.2);
             }
         }
         // note below
         //debugger;
-        for (i=0; i<6; i=i+1) {
-            if (theNote.midi<this.bottomLineNotes[i]) {
+        for (i=0; i<5; i=i+1) {
+            if (noteHeight > (4+i)) {
                 this.theCanvas.drawStretchedSprite(gx,4.95+i,  1,8, 1,1,  1.75,1.2);
             }
         }    
@@ -483,7 +480,7 @@ exSpriteClefRow.prototype = {
         // plucks!
         for (i=0; i<this.notes.length(); i=i+1) {
             p = this.notes.nth(i); 
-            if ((this.startTime<p.t)&&(p.t<=this.endTime)) { 
+            if ((this.startTime<=p.t)&&(p.t<=this.endTime)) { 
                 //p.midi = 30+i; // test code 
                 this.drawNote(p);
             }
@@ -973,53 +970,6 @@ exControls.prototype = {
     },
 
 
-    // for use with deck
-    getHTMLForSeed: function() { 
-        var res = "<select id='exSeedHi'>";
-        res = res + "<option value='0'>0</option>";
-        res = res + "<option value='1'>1</option>";
-        res = res + "<option value='2'>2</option>";
-        res = res + "<option value='3'>3</option>";
-        res = res + "<option value='4'>4</option>";
-        res = res + "<option value='5'>5</option>";
-        res = res + "<option value='6'>6</option>";
-        res = res + "<option value='7' selected>7</option>";
-        res = res + "<option value='8'>8</option>";
-        res = res + "<option value='9'>9</option>";
-        res = res + "<option value='10'>10</option>";
-        res = res + "<option value='11'>11</option>";
-        res = res + "<option value='12'>12</option>";
-        res = res + "<option value='13'>13</option>";
-        res = res + "<option value='14'>14</option>";
-        res = res + "<option value='15'>15</option>";
-        res = res + "</select>.";
-        res = res + "<select id='exSeedLo'>";
-        res = res + "<option value='0'>0</option>";
-        res = res + "<option value='1'>1</option>";
-        res = res + "<option value='2'>2</option>";
-        res = res + "<option value='3'>3</option>";
-        res = res + "<option value='4'>4</option>";
-        res = res + "<option value='5' selected>5</option>";
-        res = res + "<option value='6'>6</option>";
-        res = res + "<option value='7'>7</option>";
-        res = res + "<option value='8'>8</option>";
-        res = res + "<option value='9'>9</option>";
-        res = res + "<option value='10'>10</option>";
-        res = res + "<option value='11'>11</option>";
-        res = res + "<option value='12'>12</option>";
-        res = res + "<option value='13'>13</option>";
-        res = res + "<option value='14'>14</option>";
-        res = res + "<option value='15'>15</option>";
-        res = res + "</select>.";
-        return res; 
-    },
-    getValueForSeed: function() {
-        var exHi = parseInt(document.getElementById('exSeedHi').value); 
-        var exLo = parseInt(document.getElementById('exSeedLo').value); 
-        var res = exHi * 16 + exLo; 
-        return res; 
-    },
-
 
 //        Beats per Minute:<input type="text" value='100' size=5 id ='tempo' /><br />
 //        anin.bpMinute = parseInt(document.getElementById('tempo').value);
@@ -1027,6 +977,123 @@ exControls.prototype = {
 };
 
 
+
+
+
+///////////////////////////////////////// exTextTab
+///////////////////////////////////////// exTextTab
+///////////////////////////////////////// exTextTab
+///////////////////////////////////////// exTextTab
+///////////////////////////////////////// exTextTab
+// given a notelist, and a tuned hand, and maybe a signature, 
+// make a grid of characters that can be printed or viewed
+
+// the string "this.grid" is 96 characters wide x 60 lines 
+
+
+function exTextTab(titleStr, tunedHand, columnsPerSecond) { 
+    this.grid = ""; 
+    this.titleString = titleStr;
+    this.hand = tunedHand; 
+    this.strCount = this.hand.strCount; 
+    this.rowHeight = this.strCount +2;  // "row"=line of tab 
+    this.rowsPerPage = Math.floor(60.0 / this.rowHeight);
+    this.blankPage(); 
+
+    this.columnsPerNote = 3; // characters it takes to show a note
+    this.columnsPerSecond = columnsPerSecond;
+    this.rowsPerSecond = columnsPerSecond / 85.0;  // 90 columns/line
+    this.pageDuration = this.rowsPerPage / this.rowsPerSecond;
+
+    return this; 
+}
+
+
+exTextTab.prototype = { 
+    // str and fill are strings. add fills to str until its length is len.
+    fillout: function(str, fill, len) { 
+        var i, inLen, fillLen, res; 
+        inLen = str.length; 
+        fillLen = fill.length; 
+        res = str; 
+        for (i=inLen; i<(len-fillLen); i=i+fillLen) { 
+            res = res + fill; 
+        } 
+        return res;
+    },
+
+
+    // put string cha in column x, row y of this.grid
+    plot: function(x, y, cha) {
+        var len = cha.length;
+        // must not write out of bounds..
+        if ((x<-1)||(x>(88-len))||(y<0)||(y>60)) { return; } 
+        // especially, don't overwrite the CR at EOL
+        var ind = 6 + x + (y*95); 
+        res = this.grid.substr(0, ind) + cha + this.grid.substr(ind+len);
+        this.grid = res; 
+        // console.log("plot: ("+ x + ',' + y + ')->' + ind);
+    },
+
+
+    // given an exNote, assuming this page starts at t=0
+    plotNote: function(that, note) {
+        var x, y, str, whichRow, rowt, rowRow; 
+//debugger;
+        if ((note.string!=-1)&&(note.t>=0.0)&&(note.t<that.pageDuration)) {
+            // which row to put the note on
+            whichRow = Math.floor(note.t * that.rowsPerSecond);
+            rowRow = (that.strCount - note.string); 
+            // start time of that row
+            rowt = whichRow / that.rowsPerSecond; 
+            //console.log('plotNote: string:' + note.string + ' fret:' + note.fret + ' row:' +whichRow);
+            x = 3 + Math.floor((note.t-rowt)*that.columnsPerSecond); 
+            y = 1 + (that.rowHeight * whichRow) + rowRow;
+            str = '' + note.fret;
+            that.plot(x,y,str); 
+        }
+    },
+
+
+    // sets "this.grid" to contain empty lines
+    blankPage: function() { 
+        var i, j, k, scr;
+        var aLine, aRow, aBlankLine, rowCt;
+        var aNote = new exNote(); 
+
+        // make sure title line is 96 chars!
+        scr = "     " + this.titleString;
+        scr = this.fillout(scr, ' ', 95);
+        scr = scr + '\n';
+
+        aLine = this.fillout('-', '-', 93); 
+        aLine += '\n';
+        aBlankLine = this.fillout(' ', ' ', 95); 
+        aBlankLine += '\n';
+
+        aRow = aBlankLine;
+        for (i=0; i<this.strCount; i=i+1) {
+            aNote.midi = this.hand.strings[i];
+            aRow = aRow + aNote.letter() + aLine; 
+        }
+        aRow += aBlankLine; 
+        
+        // make a blank grid of lines
+        for (i=0; i<this.rowsPerPage; i=i+1) {
+            scr = scr + aRow;
+        }
+        this.grid = scr; 
+        this.rowCt = rowCt; 
+    },
+
+
+    plotNoteList: function(nl) { 
+        this.blankPage(); 
+        // does not work; plotNote loses track of this
+        nl.apply(this, this.plotNote);
+    }
+
+}
 
 
 
