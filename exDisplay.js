@@ -383,39 +383,47 @@ exSpriteClefRow.prototype = {
         if (sharpOverlap.length ===0) {
             direction = 1; // 1=sharp, 2=flat, 3=natural
             naturals = unsharps;
-        } else { // what about G#M?!?! Shaddup. Nobody can play it anyway.
-            direction = 2; 
-            naturals = unflats; 
-        }
-
-        this.decor = [0,0,0, 0,0,0, 0,0,0, 0,0,0];  // 3.c.vii 
-        this.sig = [0,0,0, 0,0,0, 0,0,0, 0,0,0];
-        this.heights = [0,-1,1,  -1,2,3,  -1,4,-1,  5,-1,6]; // 3.c.viii
-
-        this.caster(this.sig, naturals, direction); // 3.c.ix
-        this.caster(this.decor, naturals, 3);       // 3.c.x
-
-        len = blacks.length;
-        for (i=0; i<len; i=i+1) {                   // 3.c.xi    
-            n = blacks[i]; 
-            if (direction===1) {
-                this.heights[n] = this.heights[n-1]; 
-            } else {
-                this.heights[n] = this.heights[n+1];
+        } else { 
+            if (flatOverlap.length==0) { 
+                direction = 2; 
+                naturals = unflats; 
+            } else { // it's F#/d#, or something else gnarly. Just set it.
+                this.heights = [0,0,1, 1,2,2, 3,4,4, 5,5,6];  
+                this.decor =   [3,0,3, 0,3,0, 0,3,0, 3,0,0];
+                this.sig =     [1,0,1, 0,1,1, 0,1,0, 1,0,0];
+                direction = 4;
             }
         }
 
-        for (i=0; i<12; i=i+1) {                    // 3.c.xii
-            if (this.heights[i]===-1) { 
+        if (direction<3) { 
+            this.decor = [0,0,0, 0,0,0, 0,0,0, 0,0,0];  // 3.c.vii 
+            this.sig = [0,0,0, 0,0,0, 0,0,0, 0,0,0];
+            this.heights = [0,-1,1,  -1,2,3,  -1,4,-1,  5,-1,6]; // 3.c.viii
+
+            this.caster(this.sig, naturals, direction); // 3.c.ix
+            this.caster(this.decor, naturals, 3);       // 3.c.x
+
+            len = blacks.length;
+            for (i=0; i<len; i=i+1) {                   // 3.c.xi    
+                n = blacks[i]; 
                 if (direction===1) {
-                    this.heights[i] = this.heights[i-1]; 
+                    this.heights[n] = this.heights[n-1]; 
                 } else {
-                    this.heights[i] = this.heights[i+1];
+                    this.heights[n] = this.heights[n+1];
                 }
-                this.decor[i] = direction; 
+            }
+
+            for (i=0; i<12; i=i+1) {                    // 3.c.xii
+                if (this.heights[i]===-1) { 
+                    if (direction===1) {
+                        this.heights[i] = this.heights[i-1]; 
+                    } else {
+                        this.heights[i] = this.heights[i+1];
+                    }
+                    this.decor[i] = direction; 
+                }
             }
         }
-
     },
 
 
