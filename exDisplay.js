@@ -230,7 +230,7 @@ exSpriteTabRow.prototype = {
 ////////////////////////////////////////////////////////////////////
 // draws one line of a score in, in (treble) clef notation, from a sprite sheet. 
 // additional variables say whether to include the clef, start time, pace, and ...?
-// disclaimer: known flaws, noted in code. To do this "properly" is a large project. 
+// disclaimer: known flaws, some noted in code. To do this "properly" is a large project. 
 
 function exSpriteClefRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aKey, showClef)  {
     this.theCanvas = new exSpriteCanvas(aCanvas, x0, y0); 
@@ -252,6 +252,7 @@ function exSpriteClefRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aKey, showClef
     this.heights = [ 0.0, 0.0, 1.0,  1.0, 2.0, 3.0,  3.0, 4.0, 4.0,  5.0, 5.0, 6.0 ];
     this.decor =   [0, 1, 0,           1, 0, 0,         1, 0, 1,       0, 1, 0 ];
     this.sig = [0,0,0, 0,0,0, 0,0,0, 0,0,0];  // what notes are sharp or flat in key signature
+    this.sigHeights = [3.5,0,4.0, 0,4.5,5.0, 0,5.5,0, 2.5,3,0];  
 
     this.timeNumerator = -1; 
     this.timeDenominator = 4;
@@ -434,9 +435,9 @@ exSpriteClefRow.prototype = {
         this.theCanvas.drawStretchedSprite(gx,noteHeight, 9,6, 1,1, 1.75,1.75); 
         
         switch (this.decor[placeInScale]) { 
-            case 1: this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 7,6, 1,1, 1.4,1.4); break;
-            case 2: this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 11,0, 1,1, 1.4,1.4); break;
-            case 3: this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 10,13, 1,1, 1.4,1.4); break;
+            case 1: this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 2,6, 1,1, 1.4,1.4); break;
+            case 2: this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 1,6, 1,1, 1.4,1.4); break;
+            case 3: this.theCanvas.drawStretchedSprite(gx-.5,noteHeight-.2, 3,6, 1,1, 1.4,1.4); break;
         }
         
         // note above staff? draw intevening lines
@@ -460,17 +461,29 @@ exSpriteClefRow.prototype = {
 
 
     redrawer: function() {
-        var i, p; 
+        var i, d, sx, sy, p; 
         // this.theCanvas.clear(); 
 
         for (i=0; i<5; i=i+1) {
             this.theCanvas.drawStretchedSprite(0,i,  1,8,  1,1,  this.theCanvas.tileW,1);  // lines
         } 
+
+        this.sigHeights = [1,0,.5,  0,0.0,-.5,  0,-1.0,0,  2.0,0,1.5];  
+
         if (this.showClef) {
             this.theCanvas.drawStretchedSprite(0,-1.0,  0, 1,  2, 5, 1.5,1.5); // clef
-            // key markings? 
 
-            if (this.timeNumerator>-1) { 
+            for (i=0; i<12; i=i+1) {     // key markings
+                d = this.sig[i];
+                sx = ((i%3)*.7)+2.5;
+                sy = this.sigHeights[i];
+                switch (d) { 
+                    case 1: this.theCanvas.drawStretchedSprite(sx,sy, 2,6, 1,1, 1.4,1.4); break;
+                    case 2: this.theCanvas.drawStretchedSprite(sx,sy, 1,6, 1,1, 1.4,1.4); break;
+                }
+            }
+
+            if (this.timeNumerator>-1) { // time markings
                 this.theCanvas.drawStretchedSprite(4,0.2,  this.timeNumerator,0, 1,1, 2.5,2.5); // numerator
                 this.theCanvas.drawStretchedSprite(4,2.2,  this.timeDenominator,0, 1,1, 2.5,2.5); // denominator
             }
@@ -658,180 +671,6 @@ exWebAudio.prototype = {
 }
 
 
-/*
-
-
-
-/////////////////  exTabDisplay: tab notation for guitars  
-/////////////////  exTabDisplay: tab notation for guitars  
-// the tab display has a two-measure area, a current and a next measure. 
-// there is a slider at the top, and it shows where you are in playback.
-
-// aHand, aNoteList..? 
-function exTabDisplay(aCanvas, aTimer) {
-    this.canvas = aCanvas; 
-    this.context = aCanvas.getContext("2d");
-        
-    this.context.fillStyle = 'white';
-    this.context.strokeStyle = "#000";
-    
-    this.timer = aTimer; 
-
-    this.loaded = 0; 
-    this.tiles = new Image(); 
-    this.tiles.src = "tabTiles01.png"; 
-    that = this;
-    this.tiles.onload = function(that) { that.loaded=1; }
-    this.tileSize = 32;     
-
-    this.timer = aTimer; 
-
-}
-
-// the scales, building off of fundamental tones
-// 
-
-
-
-exTabDisplay.prototype.copy = function (n) {  
-    // as above, so here. later
-}
-
-// 
-exTabDisplay.prototype.drawMinSprite = function(x, y, tx, ty) { 
-    var ts = this.tileSize; 
-    this.context.drawImage(this.tiles, tx*ts, ty*ts, ts, ts, x*ts, y*ts, ts, ts); 
-}
-
-exTabDisplay.prototype.drawSliderSprite = function(x, y, tx, ty) { 
-    var ts = this.tileSize; 
-    this.context.drawImage(this.tiles, tx*ts, ty*ts, ts, ts, x, y*ts, ts, ts); 
-}
-
-exTabDisplay.prototype.drawLargeSprite = function(x, y, tx, ty, txsz, tysz) { 
-    var ts = this.tileSize; 
-    this.context.drawImage(this.tiles, tx*ts, ty*ts, txsz*ts, tysz*ts, x*ts, y*ts, txsz*ts, tysz*ts); 
-}
-
-exTabDisplay.prototype.drawStretchedSprite = function(x, y, tx, ty, txsz, tysz, xscale, yscale) { 
-    var ts = this.tileSize; 
-    this.context.drawImage(this.tiles, tx*ts, ty*ts, txsz*ts, tysz*ts, x*ts, y*ts, txsz*ts*xscale, tysz*ts*yscale); 
-}
-
-
-    the whole point of this is... not this. 
-exTabDisplay.prototype.drawMidi = function(midi, step) { 
-    var site = this.aTunedHand.getFretForNote(midi); 
-    this.drawPluck(site[0], site[1], step); 
-}
-
-    
-
-
-exTabDisplay.prototype.clear = function() {
-    this.objCount = 1;
-    this.iteratorCounter = 0;
-    
-    this.cxw = this.context.canvas.width; 
-    this.cxh = this.context.canvas.height; 
-    
-    this.context.fillStyle = this.bg;
-    this.context.beginPath();
-    this.context.rect(0,0, this.cxw, this.cxh);
-    this.context.fill();
-        
-}
-
-// given a MIDI tone and a place on the measures, draw. 
-exTabDisplay.prototype.drawPluck = function(string, fret, tm, ppn) { 
-    var t0,mi,bpms,px,py,tx,ty; 
-    
-    t0 = this.timer.lastMeasureTime;
-    mi = this.timer.measureInterval; 
-    bi = this.timer.beatInterval; 
-    bpms = this.timer.beatsPerMeasure; 
-
-    px = (((tm-t0)/mi)*bpms);
-    if ((px>=-0.01)&&(px<=(2.99*bpms))) {
-        if (px>=((bpms*2)-0.1)) {
-            px +=3.0; 
-        }
-        if (px>=(bpms-0.1)) {
-            px += 4.2; 
-        } else {
-            px += 1.2; 
-        } 
-        py = 6-string; 
-
-        // get the fret and string of the note-- without moving your hand
-        tx = fret; 
-        ty = 0; 
-        this.drawMinSprite(px,py, tx,ty); 
-    }
-
-    // also draw below
-    // what measure is this note in? 
-    px = tm-t0; 
-    ms = Math.floor((px/mi)+0.1);
-    if ((ms>=0) && (ms<20)) {
-        px = px/bi; 
-        px = ((px+ms)*ppn)+6;
-        spx = 10-string;
-        this.drawSliderSprite(px,8, spx,9);
-    }
-}
-
-
-
-exTabDisplay.prototype.redrawer = function(noteList) {
-    var i, p, x, plusx, perc, bpm, nc, mstart, bt, intv; 
-
-    this.clear(); 
-    bpm = this.timer.beatsPerMeasure; 
-
-    // two time sliders: one for measure
-    perc = this.timer.measureFraction;
-    x = this.tileSize * ((this.timer.beatsPerMeasure * perc)+1.0); 
-    this.drawSliderSprite(x, 0, 2,9);
-    // .. one for beat.
-    perc = this.timer.beatFraction;
-    x = this.tileSize * (perc+1.0); 
-    this.drawSliderSprite(x, 0, 2,9);
-
-    // draw two measures of tab
-    this.drawLargeSprite(0,1, 3,1, 1,6); //xy txy sxy  left bar
-    this.drawLargeSprite(bpm+3,1, 3,1, 1,6); //xy txy sxy  rt bar
-    this.drawLargeSprite((bpm*2)+6,1, 3,1, 1,6); //xy txy sxy  rt bar
-    this.drawStretchedSprite(1,1, 1,1, 1,6, bpm+1,1); // vert bar on left
-    this.drawStretchedSprite(4+bpm,1, 1,1, 1,6, bpm+1,1); // on rt
-    this.drawStretchedSprite(7+(bpm*2),1, 1,1, 1,6, bpm+1,1); // on rt
-    this.drawLargeSprite(1,0, 0,8, bpm+1,1); // beats ticks above left
-    this.drawLargeSprite(4+bpm,0, 0,8, bpm+1,1); // above rt
-    this.drawLargeSprite(7+(bpm*2),0, 0,8, bpm+1,1); // above rt
-
-    // draw the miniscore at the bottom. instead of one sprite/beat, 
-    // vertical scale is 8 px/beat
-    var pxPerNote = 8; 
-    this.drawStretchedSprite(0,8, 4,9, 1,1, 26,1); // horiz lines
-    nc = 30; 
-    if (noteList.length<nc) { nc = noteList.length; }
-    for (i=0; i<30; i=i+1) { // measure vert bars
-        this.drawSliderSprite(i*pxPerNote*(bpm+1), 8, 3,9); 
-    }
-    
-
-    // plucks!
-    for (i=0; i<noteList.length; i=i+1) {
-        p = noteList[i]; 
-        this.drawPluck(p[2], p[3], p[1], 8.0); 
-    }
-}
-
-        
-
-
-
-*/
 
 ///////////////////////////////////////// exControls
 ////////////////////////////////////////////////////////////////////
@@ -911,63 +750,7 @@ exControls.prototype = {
         return res; 
     },
 
-/*      [ 0, 2,4, 5,7,9,11 ], // major
-        [ 0, 2,3, 5,7,8,10 ], // minor
-        [ 0, 2,3, 5,7,9,10 ], // dorian
-        [ 0, 2,4, 5,6,10   ], // wholetone
-        [ 0, 2,3, 6,7,8,10 ], // "hungarian"
-        [ 0, 4,6, 7,11     ], // "chinese"
-        [ 0, 1,3, 5,7,9,10 ]  // "javan"
-        [ 0,1,2,3,4,5,6,7,8,9,10,11 ]  // 12 */
 
-    getHTMLForMode: function() { 
-        var res = "<select id='exMode'>";
-        res = res + "<option value='0' selected>Major</option>";
-        res = res + "<option value='1'>Minor</option>";
-        res = res + "<option value='2'>Dorian</option>";
-        res = res + "<option value='3'>Whole</option>";
-        res = res + "<option value='4'>Hungarian</option>";
-        res = res + "<option value='5'>Pentatonic</option>";
-        res = res + "<option value='6'>Heptatonic</option>";
-        res = res + "<option value='7'>12</option>"; // seriously? kinda moots key.
-        res = res + "</select>";
-        return res; 
-    },
-    getValueForMode: function() {
-        var res = parseInt(this.document.getElementById('exMode').value); 
-        return res; 
-    },
-
-    /*  if (which==0) { this.strings = [40,45,50,55,59,64]; } // standard guitar e2 a2 d3 g3 b3 e4
-        if (which==1) { this.strings = [38,45,50,54,57,62]; } // open D    d2 a2 d3 f#3 a3 d4
-        if (which==2) { this.strings = [48,52,55,60,64,67]; } // open C    c3 e3 g3 c4 e4 g4
-        if (which==3) { this.strings = [40,45,50,54,59,64]; } // don't remember! low!
-        // the one for el noy, the one for passemezze
-        if (which==10) { this.strings = [67,60,64,69]; } // uke!    g4 c4 e4 a4
-        if (which==11) { this.strings = [55,62,69,76]; } // violin   g3,d4,a4,e5
-        if (which==12) { this.strings = [55,62,69,76]; } // mandolin   as violin
-        if (which==13) { this.strings = [67,50,55,59,62]; } // banjo   g4,d3,g3,b3,d4
-        if (which==14) { this.strings = [36,43,50,57]; } // cello   c2,g2,d3,a3
-        // Bazooki? Udtz? Samisan? Sitar?! 
-        For use with exTunedHand
-    */
-    getHTMLForTuning: function() { 
-        var res = "<select id='exTuning'>";
-        res = res + "<option value='0' selected>Standard Guitar</option>";
-        res = res + "<option value='1' selected>Guitar Drop D</option>";
-        res = res + "<option value='2' selected>Open C</option>";
-        res = res + "<option value='3' selected>EADF#BE</option>";
-        res = res + "<option value='10' selected>Ukulele</option>";
-        res = res + "<option value='11' selected>Violin/Mandolin</option>";
-        res = res + "<option value='13' selected>Banjo</option>";
-        res = res + "<option value='14' selected>Cello</option>";
-        res = res + "</select>";
-        return res; 
-    },
-    getValueForTuning: function() {
-        var res = parseInt(this.document.getElementById('exTuning').value); 
-        return res; 
-    },
 
 
 
