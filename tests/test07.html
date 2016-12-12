@@ -1,10 +1,10 @@
 <!DOCTYPE html >
 <head>
-	<title>exMusicBase/test4</title>
+	<title>exMusicBase/test7</title>
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
-	var theClef, theKey, theList, theMet, base; 
+	var theClef, theLine, theKey, theList, theMet, base; 
 
 	function generate() { 
 		var baseNote, key2, i;
@@ -37,7 +37,9 @@
 		theClef.redrawer(); 
 
 		theMet = new exMetronome(30, 120, 4, 16); 
-		
+		theLine = new exSpriteTimeLine(theCanvas, theList, 0,2, 2, theMet, true);
+		theLine.redrawer(); 
+
 		setInterval(redraw,1000);  
 	}
 
@@ -50,14 +52,17 @@
 		theClef.clearAll(); 
 		theClef.setKey(theKey);
 		theClef.redrawer(); 
-		
+		theLine.redrawer(); 
+
 		theClef.theCanvas.drawSprite(0,7,4+((base+3)%12),12); 
 	}
 
 	</script>
 </head>
 <body  onLoad="starter();">
-	Test 4: Clef with signatures, modes, and keys. 
+	Test 7: TBD
 	<canvas id="mainCanvas" width="782" height="320"></canvas> 
+<br> 
+	<div id="exControlHolder"></div>
 </body>
 </html>

@@ -1,67 +1,56 @@
-<!DOCTYPE html >
+<!DOCTYPE html>
 <head>
-	<title>exMusicBase/tests</title>
+	<title>exMusicBase/test5</title>
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
-	var theClef, theLine, theKey, theList, theMet, base; 
+	var theTab, theHand, theList, theKey; 
 
 	function generate() { 
-		var baseNote, key2, i;
+		var baseNote, newNote, i;
 		
 		baseNote = new exNote(); 		
 		theList = new exNoteList(); 
-		
-		for (i=0; i<36; i=i+1) {
-			baseNote.t = i*.75; 
-			baseNote.midi = 36+i; 
-			theList.add(baseNote); 
-			baseNote.t = i*.75; 
-			baseNote.midi = 48+i; 
-			theList.add(baseNote); 
-		}
+		baseNote.midi = 36; 
 
+		for (i=0; i<36; i=i+1) {
+			newNote = theKey.copyStep(baseNote, i);
+			newNote.t = i*.75; 
+			theHand.setANote(newNote); 
+			theList.add(newNote); 
+		}
 	}
 
+	function setParameters() { 
+		theKey.setModeFromHTMLControl(document); 
+		generate(); 
+	}
 
 	function starter() { 
-		base = 30; 
 		theKey = new exKey(); 
-		generate(); 
-
-//		var theConts = document.getElementById("exControlHolder");
-//		theConts.innerHTML = theKey.getHTMLForModeControl("key1");
+		
+		var theConts = document.getElementById("exControlHolder");
+		theConts.innerHTML = theKey.getHTMLForModeControl("key1");
 
 		var theCanvas = document.getElementById("mainCanvas");
-		theClef = new exSpriteClefRow(theCanvas, theList, 0,6, 2, theKey, true);
-		theClef.redrawer(); 
-
-		theMet = new exMetronome(30, 120, 4, 16); 
-		theLine = new exSpriteTimeLine(theCanvas, theList, 0,2, 2, theMet, true);
-		theLine.redrawer(); 
+		theHand = new exTunedHand(); 
+		theTab = new exSpriteTabRow(theCanvas, theList, 0,2, 2, theHand, 0);
+		generate(); 
 
 		setInterval(redraw,1000);  
 	}
 
 	function redraw() {
-		console.log("redraw");
-		base = base+1;
-		if (base>80) { base = 30; }  
-		theKey.setTonic(base);
-		generate(); 
-		theClef.clearAll(); 
-		theClef.setKey(theKey);
-		theClef.redrawer(); 
-		theLine.redrawer(); 
-
-		theClef.theCanvas.drawSprite(0,7,4+((base+3)%12),12); 
+		theTab.clearAll(); 
+		theTab.notes = theList;
+		theTab.redrawer(); 
 	}
 
 	</script>
 </head>
 <body  onLoad="starter();">
-	Test 5: Clef with signatures, modes, and keys. Except G#
-	<canvas id="mainCanvas" width="782" height="320"></canvas> 
+	Test 5: Controls, score regeneration
+	<canvas id="mainCanvas" width="782" height="180"></canvas> 
 <br> 
 	<div id="exControlHolder"></div>
 </body>

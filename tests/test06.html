@@ -1,0 +1,60 @@
+<!DOCTYPE html >
+<head>
+	<title>exMusicBase/test6</title>
+	<script type="text/javascript" src="../exMusic.js"></script>  
+	<script type="text/javascript" src="../exDisplay.js"></script>  
+	<script type="text/javascript">		
+	var theList, theClef, theTab, theHand, theLine, theMet; 
+
+	function generate() { 
+		var baseNote, i;
+		
+		baseNote = new exNote(); 		
+		theList = new exNoteList(); 
+		
+		for (i=0; i<24; i=i+1) {
+			baseNote.t = i*.75; 
+			baseNote.midi = 48+i; 
+			theHand.setANote(baseNote); 
+			theList.add(baseNote); 
+		}
+
+	}
+
+
+	function starter() { 
+		theMet = new exMetronome(33, 120, 4, 16); 
+		theHand = new exTunedHand(); 
+		generate(); 
+		var theCanvas = document.getElementById("mainCanvas");
+
+		var theKey = new exKey(); 
+		theClef = new exSpriteClefRow(theCanvas, theList, 0,3, 2, theKey, true);
+		theClef.redrawer(); 
+
+		theTab = new exSpriteTabRow(theCanvas, theList, 0,8, 2, theHand, true);
+		theClef.redrawer(); 
+
+		theLine = new exSpriteTimeLine(theCanvas, theList, 0,1, 2, theMet, true);
+		theLine.redrawer(); 
+
+		setInterval(redraw,33);  
+	}
+
+	function redraw() {
+		theMet.update(); 
+		
+		theClef.clearAll(); 
+
+		theClef.redrawer(); 
+		theTab.redrawer(); 
+		theLine.redrawer(); 
+	}
+
+	</script>
+</head>
+<body  onLoad="starter();">
+	Test 6: Timeline, moving, with tab and clef, aligned. 
+	<canvas id="mainCanvas" width="782" height="320"></canvas> 
+</body>
+</html>

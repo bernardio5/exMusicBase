@@ -1,6 +1,6 @@
 <!DOCTYPE html >
 <head>
-	<title>exMusicBase/tests</title>
+	<title>exMusicBase/test3</title>
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
@@ -66,7 +66,7 @@
 		thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
 				
 		var theCanvas = document.getElementById("mainCanvas");
-		theTab = new exSpriteTabRow(theCanvas, theList, 0,4, 2, theHand, false);
+		theTab = new exSpriteTabRow(theCanvas, theList, 0,1, 2, theHand, false);
 		setInterval(redraw,500);  
 
 
@@ -80,7 +80,7 @@
 	</script>
 </head>
 <body  onLoad="starter();">
-	<canvas id="mainCanvas" width="782" height="320"></canvas> 
+	<canvas id="mainCanvas" width="782" height="140"></canvas> 
 <br> 
 	<div id="exTabHolder"></div>
 </body>

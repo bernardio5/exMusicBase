@@ -170,9 +170,9 @@ function exSpriteTabRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aTunedHand, sho
     this.hand = aTunedHand;
     
     if (showClef) {
-        this.offset = 6;
+        this.offset = 5;
     } else {
-        this.offset = 3; 
+        this.offset = 1; 
     }
     this.duration = (this.theCanvas.tileW - this.offset) / tilesPerSec;
     this.startTime = 0.0; 
@@ -186,6 +186,10 @@ exSpriteTabRow.prototype = {
         this.endTime = t + this.duration; 
     },
 
+    clearAll: function() { 
+        this.theCanvas.clearAll();
+    },
+
 
     // assumes that the note has fret and string set 
     drawPluck: function(aNote, ppn) { 
@@ -193,22 +197,26 @@ exSpriteTabRow.prototype = {
         px = (((aNote.t-this.startTime)*this.tilesPerSec))+this.offset; 
         py = 6-aNote.string; 
         tx = aNote.fret; 
-        ty = 0; 
+        ty = 7; 
         this.theCanvas.drawSprite(px,py, tx,ty); 
     },
 
 
     redrawer: function() {
-        var i, f, p; 
+        var i, f1, f2, f3, p, len; 
 
         this.theCanvas.clear(); 
 
         // letters at line beginning--?
         //    drawStretchedSprite: function(x, y, tx, ty, txsz, tysz, xscale, yscale) 
         strs = this.hand.strings;
-        for (i=0; i<strs.length; i=i+1) {
-            f = (strs[i])+1;
-            this.theCanvas.drawSprite(0,i+1, 4+(f%12),12);
+        len = strs.length;
+        for (i=0; i<len; i=i+1) { // standard guitar e2 a2 d3 g3 b3 e4
+            f1 = (strs[len-i]-1);
+            f1 = (len - i) - 1;
+            f2 = strs[f1];
+            f3 = (f2+3)%12;
+            this.theCanvas.drawSprite(0,i+1, f3+4,12); // letter label
             this.theCanvas.drawStretchedSprite(1,i+1,  1,8,  1,1,  this.theCanvas.tileW,1);  // lines
         }
         // plucks!
@@ -864,7 +872,7 @@ exTextTab.prototype = {
 
         aRow = aBlankLine;
         for (i=0; i<this.strCount; i=i+1) {
-            aNote.midi = this.hand.strings[i];
+            aNote.midi = this.hand.strings[this.strCount - i -1];
             aRow = aRow + aNote.letter() + aLine; 
         }
         aRow += aBlankLine; 
