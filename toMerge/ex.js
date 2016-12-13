@@ -462,7 +462,7 @@ function exTabDisplay(aCanvas, aTimer) {
 
     this.loaded = 0; 
     this.tiles = new Image(); 
-    this.tiles.src = "tabTiles01.png"; 
+    this.tiles.src = "../exTiles.png"; 
     that = this;
     this.tiles.onload = function(that) { that.loaded=1; }
     this.tileSize = 16;    // size of tiles on screen; set how you please

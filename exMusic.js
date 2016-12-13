@@ -1163,7 +1163,6 @@ exMetronome.prototype = {
 
 
     update: function() { 
-        this.lastBeatTime = this.t; 
         this.t += this.dt; 
         this.recalculate(); 
     },

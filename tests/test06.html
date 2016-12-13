@@ -43,12 +43,18 @@
 
 	function redraw() {
 		theMet.update(); 
-		
+
 		theClef.clearAll(); 
 
 		theClef.redrawer(); 
 		theTab.redrawer(); 
 		theLine.redrawer(); 
+		if (theMet.didCrossBeat) { 
+			theLine.theCanvas.drawSprite(10,0,0,0);
+		}
+		if (theMet.didCrossMeasure) { 
+			theLine.theCanvas.drawSprite(12,0,0,1);
+		}
 	}
 
 	</script>

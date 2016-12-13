@@ -693,12 +693,7 @@ exWebAudio.prototype = {
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
-// A set of contoller object generators
-//    Each generates HTML code for pickers, filled with music-related options.
-//    Each also provides a value-fetching function.
-//    Does place constraints on what ID's you use in your HTML
-//    Option values correspond to constants in exKey, exTunedHand, and exChord
-
+// moving these into the objects they control.
 
 function exControls(document) {
     this.myDocument = document;
@@ -787,8 +782,8 @@ exControls.prototype = {
 // given a notelist, and a tuned hand, and maybe a signature, 
 // make a grid of characters that can be printed or viewed
 
-// the string "this.grid" is 96 characters wide x 60 lines 
-
+// the string "this.grid" is 96 characters wide x 60 lines,
+//   which is a good layout for a single 8.5x11" printed page.
 
 function exTextTab(titleStr, tunedHand, columnsPerSecond) { 
     this.grid = ""; 
