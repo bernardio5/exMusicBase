@@ -1,69 +1,29 @@
 
-// Motifs are notelists and an opration that modifies them. 
-// The operation uses a deck and one 0->1 argument as addl input. 
-// Motifs enabole Mixers to move noteLists about controllably. 
 
-// Example operation: transpose 
-// To do this, the motif turns key into 0-12 tonics
-// then each note is mapped from a base to the new
-
-// repeat n times. play at half-speed.
-// play backwards. 
-
-function exMotif() { 
-    this.chord = new exChord(); 
-    this.chord.copy(aChord); 
-    
-    this.line = aLine; 
-    this.distType = aType; 
-    this.events = []; 
-    this.type = 0; 
-}
-
-
-exMotif.prototype.copy = function(it) { 
-}
-
-exMotif.prototype.setLine = function(aLine) { 
-    this.line = aLine; 
-    this.rerender(); 
-}
-
-exMotif.prototype.setChord = function(aCh) { 
-    this.chord = aCh; 
-    this.rerender(); 
-}
-
-// yeah, this will make really boring music. 
-// if this is all that you are doing!
-exMotif.prototype.rerender = function(controlA, controlB, deck) {
-    switch (this.type) {
-        // picks a note, sets all notes using that note and the line
-        case 0: this.setToSteadies(controlA, controlB, deck); break;
-        // picks a hit, and sets several notes to occur dring that hit
-        case 1: this.setToChord(controlA, controlB, deck); break; 
-        // lowest note to highest, one per hit. 
-        case 2: this.setToSweeps(controlA, controlB, deck); break; 
-        // picks two and alternates per hit
-        case 3: this.setToTrill(controlA, controlB, deck); break; 
-        // all the way up, then all down, again, till hit repeats. 
-        case 4: this.setToNoodle(controlA, controlB, deck); break; 
-    }
-}
-
-// one note? a chord? every hit? one? 
-// chord selected how? 
-exMotif.prototype.setToSteady = function() { 
-
-}
-
-// 
-exMotif.prototype.setToSweep = function() { 
-
-}
-
+// the core function of exMotif is to be portable. 
+// we need to have functions that take a 0->1 and move objects about
 
 /*
+ 
+make reps with spacing
+    
+
+transpose to key
+
+reverse
+
+fit to hand
+
+there is still not enough infrastructure
+
+
+
+
+*/
+
+
+
+
 /////////////////////////////////////
 // exMotif takes a chord, lines, shufflings, and a deck, and returns
 function exMotif(aChord) { 
@@ -307,7 +267,7 @@ exMotif.prototype.getNthNote = function(n, target) {
 }
 
 
-*/
+
 
 
 

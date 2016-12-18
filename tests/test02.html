@@ -4,37 +4,39 @@
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
+	var theTab; 
 
-	function redraw() { 
+	function starter() { 
 		var thePre, theHand, tab, theNote, note2, note3, theList, key1, key2, i, j, t;
 
 		thePre = document.getElementById("exTabHolder");
 		theHand = new exTunedHand(); 
-		tab = new exTextTab("test 2: using exKey to generate notes", theHand, 6.0); 
+		tab = new exTextTab("test 2: tab sprites", theHand, 6.0); 
 
 		theNote = new exNote(); 		
-		theNote.midi = 36; 
+		theNote.midi = 40; 
 		theNote.t = 0.0;
 		theNote.string = -1; 
 		theNote.fret = -1; 
 
 		theList = new exNoteList(); 
-		key1 = new exKey(); // this is CM 
+		theList = new exNoteList(); 
+		key1 = new exKey(); 
 		key2 = new exKey(); 
 		t = 0.0; 
 		
-		for (i=0; i<12; i=i+1) {
-			note2 = key1.copyStep(theNote, i); //
+		for (i=0; i<16; i=i+1) {
+			note2 = key1.copyStep(theNote, i); 
 			key2.setTonic(note2.midi); 
 
-			for (j=0; j<5;  j=j+1) {
+			for (j=0; j<3;  j=j+1) {
 				note2.t = t; 
-				note3 = key2.copyStep(note2, j*2); 
+				note3 = key2.copyStep(note2, j); 
 				theHand.setANote(note3); // use hand to put note on a string/fret
 				theList.add(note3); 
 				t = t + 0.66;
 			}
-/*
+
 			for (j=3; j>0; j=j-1) {
 				note2.t = t; 
 				note3 = key2.copyStep(note2, j); 
@@ -42,19 +44,13 @@
 				theList.add(note3); 
 				t = t + 0.66;
 			}
-*/		}
-		for (i=12; i>=0; i=i-1) {
+		}
+		for (i=16; i>=0; i=i-1) {
 			note2 = key1.copyStep(theNote, i); 
 			key2.setTonic(note2.midi); 
 
 			note2.t = t; 
-			note3 = key2.copyStep(note2, 8); 
-			theHand.setANote(note3); 
-			theList.add(note3); 
-			t = t + 0.66;
-
-			note2.t = t; 
-			note3 = key2.copyStep(note2, 5); 
+			note3 = key2.copyStep(note2, 3); 
 			theHand.setANote(note3); 
 			theList.add(note3); 
 			t = t + 0.66;
@@ -68,11 +64,24 @@
 
 		tab.plotNoteList(theList); 
 		thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
+				
+		var theCanvas = document.getElementById("mainCanvas");
+		theTab = new exSpriteTabRow(theCanvas, theList, 0,1, 2, theHand, false);
+		setInterval(redraw,500);  
+
+
+	}
+
+	function redraw() {
+		theTab.redrawer(); 
+
 	}
 
 	</script>
 </head>
-<body  onLoad="redraw();">
+<body  onLoad="starter();">
+	<canvas id="mainCanvas" width="782" height="140"></canvas> 
+<br> 
 	<div id="exTabHolder"></div>
 </body>
 </html>

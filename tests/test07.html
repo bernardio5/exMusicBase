@@ -1,23 +1,21 @@
 <!DOCTYPE html >
 <head>
-	<title>exMusicBase/test7</title>
+	<title>exMusicBase/test6</title>
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
-	var theClef, theLine, theKey, theList, theMet, base; 
+	var theList, theSound, theTab, theHand, theLine, theMet; 
 
 	function generate() { 
-		var baseNote, key2, i;
+		var baseNote, i;
 		
 		baseNote = new exNote(); 		
 		theList = new exNoteList(); 
 		
-		for (i=0; i<36; i=i+1) {
-			baseNote.t = i*.75; 
-			baseNote.midi = 36+i; 
-			theList.add(baseNote); 
-			baseNote.t = i*.75; 
+		for (i=0; i<24; i=i+1) {
+			baseNote.t = theMet.timeOfNthBeat(i); 
 			baseNote.midi = 48+i; 
+			theHand.setANote(baseNote); 
 			theList.add(baseNote); 
 		}
 
@@ -25,44 +23,40 @@
 
 
 	function starter() { 
-		base = 30; 
-		theKey = new exKey(); 
+		theMet = new exMetronome(33, 60, 4, 16); 
+		theHand = new exTunedHand(); 
 		generate(); 
-
-//		var theConts = document.getElementById("exControlHolder");
-//		theConts.innerHTML = theKey.getHTMLForModeControl("key1");
-
 		var theCanvas = document.getElementById("mainCanvas");
-		theClef = new exSpriteClefRow(theCanvas, theList, 0,6, 2, theKey, true);
+
+		var theKey = new exKey(); 
+
+		theClef = new exSpriteClefRow(theCanvas, theList, 0,1, 2, theKey, true);
 		theClef.redrawer(); 
 
-		theMet = new exMetronome(30, 120, 4, 16); 
-		theLine = new exSpriteTimeLine(theCanvas, theList, 0,2, 2, theMet, true);
+//          function exSpriteTimeLine(aCanvas, aNoteList, x0,y0, tilesPerSec, aSignature, showClef) {
+		theLine = new exSpriteTimeLine(theCanvas, theList, 0,9, 2, theMet, true);
 		theLine.redrawer(); 
 
-		setInterval(redraw,1000);  
+		theSound = new exWebAudio(theCanvas, theList, 0,9, 2, theHand, true);
+
+
+		setInterval(redraw,33);  
 	}
 
 	function redraw() {
-		console.log("redraw");
-		base = base+1;
-		if (base>80) { base = 30; }  
-		theKey.setTonic(base);
-		generate(); 
-		theClef.clearAll(); 
-		theClef.setKey(theKey);
-		theClef.redrawer(); 
-		theLine.redrawer(); 
+		theMet.update(); 
 
-		theClef.theCanvas.drawSprite(0,7,4+((base+3)%12),12); 
+		theClef.clearAll(); 
+
+		theClef.redrawer(); 
+		thsSound.update()
+		theLine.redrawer(); 
 	}
 
 	</script>
 </head>
 <body  onLoad="starter();">
-	Test 7: TBD
+	Test 7: Sound synchronized to timeline. 
 	<canvas id="mainCanvas" width="782" height="320"></canvas> 
-<br> 
-	<div id="exControlHolder"></div>
 </body>
 </html>

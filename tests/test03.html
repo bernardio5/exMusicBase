@@ -4,84 +4,60 @@
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
-	var theTab; 
+	var theClef, theKey, theList, theMet, base; 
 
-	function starter() { 
-		var thePre, theHand, tab, theNote, note2, note3, theList, key1, key2, i, j, t;
-
-		thePre = document.getElementById("exTabHolder");
-		theHand = new exTunedHand(); 
-		tab = new exTextTab("test 3: tab sprites", theHand, 6.0); 
-
-		theNote = new exNote(); 		
-		theNote.midi = 40; 
-		theNote.t = 0.0;
-		theNote.string = -1; 
-		theNote.fret = -1; 
-
-		theList = new exNoteList(); 
-		theList = new exNoteList(); 
-		key1 = new exKey(); 
-		key2 = new exKey(); 
-		t = 0.0; 
+	function generate() { 
+		var baseNote, key2, i;
 		
-		for (i=0; i<16; i=i+1) {
-			note2 = key1.copyStep(theNote, i); 
-			key2.setTonic(note2.midi); 
-
-			for (j=0; j<3;  j=j+1) {
-				note2.t = t; 
-				note3 = key2.copyStep(note2, j); 
-				theHand.setANote(note3); // use hand to put note on a string/fret
-				theList.add(note3); 
-				t = t + 0.66;
-			}
-
-			for (j=3; j>0; j=j-1) {
-				note2.t = t; 
-				note3 = key2.copyStep(note2, j); 
-				theHand.setANote(note3); 
-				theList.add(note3); 
-				t = t + 0.66;
-			}
+		baseNote = new exNote(); 		
+		theList = new exNoteList(); 
+		
+		for (i=0; i<36; i=i+1) {
+			baseNote.t = i*.75; 
+			baseNote.midi = 36+i; 
+			theList.add(baseNote); 
+			baseNote.t = i*.75; 
+			baseNote.midi = 48+i; 
+			theList.add(baseNote); 
 		}
-		for (i=16; i>=0; i=i-1) {
-			note2 = key1.copyStep(theNote, i); 
-			key2.setTonic(note2.midi); 
-
-			note2.t = t; 
-			note3 = key2.copyStep(note2, 3); 
-			theHand.setANote(note3); 
-			theList.add(note3); 
-			t = t + 0.66;
-
-			note2.t = t; 
-			note3 = key2.copyStep(note2, 0); 
-			theHand.setANote(note3); 
-			theList.add(note3); 
-			t = t + 0.66;
-		}
-
-		tab.plotNoteList(theList); 
-		thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
-				
-		var theCanvas = document.getElementById("mainCanvas");
-		theTab = new exSpriteTabRow(theCanvas, theList, 0,1, 2, theHand, false);
-		setInterval(redraw,500);  
-
 
 	}
 
-	function redraw() {
-		theTab.redrawer(); 
 
+	function starter() { 
+		base = 30; 
+		theKey = new exKey(); 
+		generate(); 
+
+//		var theConts = document.getElementById("exControlHolder");
+//		theConts.innerHTML = theKey.getHTMLForModeControl("key1");
+
+		var theCanvas = document.getElementById("mainCanvas");
+		theClef = new exSpriteClefRow(theCanvas, theList, 0,6, 2, theKey, true);
+		theClef.redrawer(); 
+
+		theMet = new exMetronome(30, 120, 4, 16); 
+		
+		setInterval(redraw,1000);  
+	}
+
+	function redraw() {
+		console.log("redraw");
+		base = base+1;
+		if (base>80) { base = 30; }  
+		theKey.setTonic(base);
+		generate(); 
+		theClef.clearAll(); 
+		theClef.setKey(theKey);
+		theClef.redrawer(); 
+		
+		theClef.theCanvas.drawSprite(0,7,4+((base+3)%12),12); 
 	}
 
 	</script>
 </head>
 <body  onLoad="starter();">
-	<canvas id="mainCanvas" width="782" height="140"></canvas> 
-<br> 
-	<div id="exTabHolder"></div>
+	Test 3: Clef with signatures, modes, and keys. 
+	<canvas id="mainCanvas" width="782" height="320"></canvas> 
 </body>
 </html>

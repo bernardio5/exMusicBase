@@ -6,34 +6,64 @@
 	<script type="text/javascript">		
 
 	function redraw() { 
-		var thePre, theHand, tab, theNote, theList, i, midi;
+		var thePre, theHand, tab, theNote, note2, note3, theList, key1, key2, i, j, t;
 
 		thePre = document.getElementById("exTabHolder");
-		// thePre.innterHTML = "this is a test."
-
-		// we will generate tab for a guitar, the default
 		theHand = new exTunedHand(); 
-		tab = new exTextTab("test 1: plot fret plucks in succession; tests exTextTab, exNoteLists & exTunedHand", theHand, 6.0); 
-		// will put in just a blank page of tab
-		// thePre.innerHTML = "<pre>" + tab.grid + "</pre>";
+		tab = new exTextTab("test 1: using exKey to generate notes", theHand, 6.0); 
 
-		theNote = new exNote(); 
+		theNote = new exNote(); 		
+		theNote.midi = 36; 
+		theNote.t = 0.0;
+		theNote.string = -1; 
+		theNote.fret = -1; 
+
 		theList = new exNoteList(); 
+		key1 = new exKey(); // this is CM 
+		key2 = new exKey(); 
+		t = 0.0; 
+		
+		for (i=0; i<12; i=i+1) {
+			note2 = key1.copyStep(theNote, i); //
+			key2.setTonic(note2.midi); 
 
-		for (i=0; i<128; i=i+1) {
-			// test for plotting: uncomment out these, comment out line 38
-			//tab.plot(i, i, '*');
-			//tab.plot(i+50, i, '****');
+			for (j=0; j<5;  j=j+1) {
+				note2.t = t; 
+				note3 = key2.copyStep(note2, j*2); 
+				theHand.setANote(note3); // use hand to put note on a string/fret
+				theList.add(note3); 
+				t = t + 0.66;
+			}
+/*
+			for (j=3; j>0; j=j-1) {
+				note2.t = t; 
+				note3 = key2.copyStep(note2, j); 
+				theHand.setANote(note3); 
+				theList.add(note3); 
+				t = t + 0.66;
+			}
+*/		}
+		for (i=12; i>=0; i=i-1) {
+			note2 = key1.copyStep(theNote, i); 
+			key2.setTonic(note2.midi); 
 
-			// series of notes, ascending
-			theNote.midi = 40 + (i %30); // roughly the guitar's range
-			theNote.t = i * 0.666;
-			theNote.string = -1; 
-			theNote.fret = -1; 
+			note2.t = t; 
+			note3 = key2.copyStep(note2, 8); 
+			theHand.setANote(note3); 
+			theList.add(note3); 
+			t = t + 0.66;
 
-			theHand.setANote(theNote); // use hand to put note on a string/fret
+			note2.t = t; 
+			note3 = key2.copyStep(note2, 5); 
+			theHand.setANote(note3); 
+			theList.add(note3); 
+			t = t + 0.66;
 
-			theList.add(theNote); 
+			note2.t = t; 
+			note3 = key2.copyStep(note2, 0); 
+			theHand.setANote(note3); 
+			theList.add(note3); 
+			t = t + 0.66;
 		}
 
 		tab.plotNoteList(theList); 

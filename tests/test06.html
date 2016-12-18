@@ -4,7 +4,7 @@
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
-	var theList, theClef, theTab, theHand, theLine, theMet; 
+	var theList, theSound, theTab, theHand, theLine, theMet; 
 
 	function generate() { 
 		var baseNote, i;
@@ -13,7 +13,7 @@
 		theList = new exNoteList(); 
 		
 		for (i=0; i<24; i=i+1) {
-			baseNote.t = i*.75; 
+			baseNote.t = theMet.timeOfNthBeat(i); 
 			baseNote.midi = 48+i; 
 			theHand.setANote(baseNote); 
 			theList.add(baseNote); 
@@ -23,19 +23,20 @@
 
 
 	function starter() { 
-		theMet = new exMetronome(33, 120, 4, 16); 
+		theMet = new exMetronome(33, 60, 4, 16); 
 		theHand = new exTunedHand(); 
 		generate(); 
 		var theCanvas = document.getElementById("mainCanvas");
 
 		var theKey = new exKey(); 
-		theClef = new exSpriteClefRow(theCanvas, theList, 0,3, 2, theKey, true);
+		theClef = new exSpriteClefRow(theCanvas, theList, 0,1, 2, theKey, true);
 		theClef.redrawer(); 
 
-		theTab = new exSpriteTabRow(theCanvas, theList, 0,8, 2, theHand, true);
+		theTab = new exSpriteTabRow(theCanvas, theList, 0,9, 2, theHand, true);
 		theClef.redrawer(); 
 
-		theLine = new exSpriteTimeLine(theCanvas, theList, 0,1, 2, theMet, true);
+//          function exSpriteTimeLine(aCanvas, aNoteList, x0,y0, tilesPerSec, aSignature, showClef) {
+		theSound = new exSpriteTimeLine(theCanvas, theList, 0,9, 2, theMet, true);
 		theLine.redrawer(); 
 
 		setInterval(redraw,33);  
@@ -49,12 +50,6 @@
 		theClef.redrawer(); 
 		theTab.redrawer(); 
 		theLine.redrawer(); 
-		if (theMet.didCrossBeat) { 
-			theLine.theCanvas.drawSprite(10,0,0,0);
-		}
-		if (theMet.didCrossMeasure) { 
-			theLine.theCanvas.drawSprite(12,0,0,1);
-		}
 	}
 
 	</script>

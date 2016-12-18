@@ -92,34 +92,6 @@ exSpriteCanvas.prototype = {
     },
 
 
-    // frees sprite from grid in x-- useful for timer sliders. 
-    drawSliderSprite: function(xsl, y, tx, ty) { 
-        var ts = this.tileSize; 
-        var is = this.imgTileSz
-        var xpos = this.x0 + xsl/ts; 
-        var ypos = this.y0 + (ts*y); 
-        this.context.drawImage(this.tiles, tx*is, ty*is, is, is, xpos, ypos, ts, ts); 
-        if ((xsl/ts)<this.minX) { this.minX = xsl/ts; }
-        if (y<this.minY) { this.minY = y; }
-        if ((xsl/ts)>this.maxX) { this.maxX = xsl/ts; }
-        if (y>this.maxY) { this.maxY = y; }
-    },
-
-
-    // sigh. what is this whole class even for? 
-    drawCheaterSprite: function(x, y, tx, ty) { 
-        var ts = this.tileSize; 
-        var is = this.imgTileSz
-        var xpos = x/ts; 
-        var ypos = y/ts; 
-        this.context.drawImage(this.tiles, tx*is, ty*is, is, is, x+this.x0, y+this.y0, ts, ts); 
-        if (xpos<this.minX) { this.minX = xpos; }
-        if (ypos<this.minY) { this.minY = ypos; }
-        if (((xpos+txsz)*xscale)>this.maxX) { this.maxX = ((xpos+txsz)*xscale); }
-        if (((ypos+tysz)*yscale)>this.maxY) { this.maxY = ((ypos+tysz)*yscale); }
-    },
-
-
     // erases canvas
     clear: function() {
         var ts = this.tileSize; 
@@ -447,7 +419,7 @@ exSpriteClefRow.prototype = {
         base = 3.5*(octave-4);
         noteHeight = 4.5-(base + (this.heights[placeInScale]*.5));
     
-        gx = ((theNote.t-this.startTime) * this.tilesPerSec)+this.offset; 
+        gx = ((theNote.t-this.startTime) * this.tilesPerSec)+this.offset -0.3; 
         this.theCanvas.drawStretchedSprite(gx,noteHeight, 9,6, 1,1, 1.75,1.75); 
         
         switch (this.decor[placeInScale]) { 
@@ -523,16 +495,19 @@ exSpriteClefRow.prototype = {
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 // draws a line with a mark on it that slides. handy!
 
-function exSpriteTimeLine(aCanvas, aNoteList, x0, y0, tilesPerSec, aSignature, showClef) {
+function exSpriteTimeLine(aCanvas, aNoteList, x0, y0, tilesPerSec, aMetronome, showClef) {
     this.theCanvas = new exSpriteCanvas(aCanvas, x0, y0); 
     this.notes = aNoteList; 
     this.tilesPerSec = tilesPerSec;
-    this.signature = aSignature;
+    this.met = aMetronome;
     this.showClef = showClef;
     if (showClef) {
-        this.offset = 5;
+        this.offset = 4;
     } else {
         this.offset = 1; 
     }
@@ -555,22 +530,29 @@ exSpriteTimeLine.prototype = {
 
     redrawer: function() {
         var x, fract; 
+        var scale = this.tilesPerSec; 
 
-        this.signature.update(); 
         // timeline
-        this.theCanvas.drawStretchedSprite(0,0,  1,8,  1,1,  this.theCanvas.tileW,1);  
+        this.theCanvas.drawStretchedSprite(this.offset,0,  0,14,  15,1,  scale,1.0);  
+        this.theCanvas.drawStretchedSprite(15*scale,0,  0,14,  15,1, scale,1.0);  
+  //      this.theCanvas.drawStretchedSprite(this.offset+30,0,  0,14,  15,1);  
         // beat marks?
         // measure marks?
 
-        // two time sliders: one for measure
-        fract = this.signature.measureFraction;
-        x = this.offset + (this.tilesPerSec * (fract/this.signature.beatInterval)); 
-        this.theCanvas.drawSliderSprite(x,0, 6,6);
+        // time sliders: one for measure
+        fract = this.met.measureFraction;
+        x = this.offset + (scale * fract) * this.met.beatsPerMeasure +0.7; 
+        this.theCanvas.drawSprite(x,0, 6,6);
 
-        // .. one for beat.
-        fract = this.signature.beatFraction;
-        x = this.offset + (this.tilesPerSec * (fract / this.signature.measureInterval)); 
-        this.theCanvas.drawSliderSprite(x,0, 6,6);
+        // .. one for beat (the ticker)
+        fract = this.met.beatFraction;
+        x = this.offset + (scale * fract) + 0.7; 
+        this.theCanvas.drawSprite(x,0, 6,6);
+
+        // 
+        fract = this.met.beatCounter * scale;
+        x = this.offset + fract + 0.7; 
+        this.theCanvas.drawSprite(x,0, 4,6);
     }
 };
 
@@ -584,14 +566,23 @@ exSpriteTimeLine.prototype = {
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 // draw multiple exSpriteTabRows, given top-left and vertical spacing
+// function exSpriteClefRow(aCanvas, aNoteList, x0, y0, tilesPerSec, aKey, showClef)  {
 
-//function exSpriteTabSet(aCanvas, aNoteList, ) {
-    // in a for loop or something
-    // this.theCanvas = new exSpriteTabLine(aCanvas, ); 
-//};
+// displays two lines and a timeline; second line is moved to top line
+function exClefPlayerA(aCanvas, aNoteList) {
+};
 
+// displays one line, plays twice
+function exClefPlayerB(aCanvas, aNoteList) {
+};
 
-//exSpriteTabSet.prototype = {
+// displays tab, three lines, no sound 
+function exTabPlayer(aCanvas, aNoteList) {
+};
+
+// displays tab, three lines, allows time to be set for dragging 
+function exTabPlayer(aCanvas, aNoteList) {
+};
 
 
 
@@ -616,9 +607,12 @@ exSpriteTimeLine.prototype = {
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 
-// this is sloppy. many questions. 
-// also not where this goes. goes in exMusic? 
-function exWebAudio(aNoteList) { 
+// ok. 1) where are we keeping t, dt? metronome. not here. take a metronome here, like timeline.
+// 2) oscilators: how many? ? 3) avoid popping; turn oscillators/notes on and off over several updates. 
+// 4) so a higher frequency than the display updates! this should be ~20ms, and the rest would be ok 
+// with anything that sampled the beat properly, visually: 100ms? 
+// and this is important enough to not take as a parameter? ...  
+function exWebAudio(aCanvas, aNoteList, x0, y0, tilesPerSec, aSignature) { 
     this.notes = aNoteList; 
     this.t = 0; 
     this.hasAudio = true; 
@@ -678,6 +672,20 @@ exWebAudio.prototype = {
     },
 
     update:function(dt) { 
+        var i, len, nt, t1, t0;
+        t0 = this.t; 
+        t1 = this.t +this.dt; 
+
+        len = this.notes.length();  
+        for (i=0; i<len; i=i+1) {
+            nt = this.notes.nth(i);
+            if ((t0<nt.t)&&(nt.t<t1)) { 
+                // note should be on
+            } else { 
+                // note should be off
+            }
+
+        }
         // find notes st this.t<note.t<this.t+dt
         // start those
         // find ending notes and stop them. 

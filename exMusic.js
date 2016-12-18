@@ -331,6 +331,61 @@ exNoteList.prototype = {
 
     tester: function() { 
         // jeez
+    },
+
+
+    //////////////////////////// initializers.. where else?
+
+    initRandom: function() {
+        var an = new exNote(); 
+        var i, tot, intv, t;
+
+        tot = this.timer.measureCount * this.timer.beatsPerMeasure; 
+        intv = this.timer.beatInterval; 
+        intvs = [0.0, 0.25, 0.5, 1.0, 2.0]; 
+
+        t = 0; 
+        while (t<tot) { 
+            an.t = t; 
+            an.fret = Math.floor(Math.random()*6); 
+            an.string = Math.floor(Math.random()*6); 
+
+            this.notes.add(an); 
+
+            gapSel = Math.floor(Math.random()*5.0);
+            gap = intv * intvs[gapSel];
+            t+= intv;  
+        }
+    },
+
+
+
+    initFromScore: function() {
+        var an = new exNote(); 
+        var i, subnl, nll, tn, mintv, mi, mt;
+
+        console.log(aNoteList.title);
+       
+        subnl = aNoteList.notes;
+        nll = subnl.length - 1; 
+        tn = aNoteList.tuning;
+
+        this.timer.beatsPerMinute = aNoteList.beatsPerMinute;; 
+        this.timer.beatsPerMeasure = aNoteList.beatsPerMeasure; 
+        this.measureCount = aNoteList.notes[nll].m; 
+        this.timer.restart(); 
+
+        mintv = this.timer.measureInterval; 
+
+        for (i=0; i<nll; i=i+1) {
+            mi = subnl[i].m;
+            an.string = 5- subnl[i].s;
+            an.fret = subnl[i].f;
+            mt = subnl[i].t;
+            an.t = (mi+mt) * mintv;
+
+            this.notes.add(an); 
+        }
     }
 
 }
@@ -1215,65 +1270,58 @@ exMetronome.prototype = {
 
 // if there IS no timer, then the concept of measure lives here.
 
-function exLine(aDeck) {
-    this.deck = new exDeck(); 
-    this.deck.copy(aDeck); 
+function exLine() {
     // how many beats of the timer per rep 
     this.beatCount = 4; 
-    this.beats = [1, 0, 0, 0]; // which beats to use, an array of 0's and 1's
-    this.deals = [0, 1, 2, 3]; // the notes of the chord placed onto them
-    // how we divide that time up; ==|beats|
-    this.intervals = this.beats.length;     
-    this.notes = new exNoteList(); 
+    this.strikes = [1, 0, 0, 0]; // which beats to use, an array of 0's and 1's
+
+    this.reps = 64;
+    this.beatsPerSecond = 120; 
 }
 
 exLine.prototype = {
 
     copy: function(it) { 
-        this.deck.copy(it.deck); 
         this.beatCount = it.beatCount; 
-        this.beats = [];
-        this.deals = [];
+        this.strikes = [];
         for (var i=0; i<it.beatCount; i=i+i) {
-            this.beats[i] = it.beats[i];
-            this.deals[i] = it.dealss[i];
+            this.strikes[i] = it.strikes[i];
         }
-        this.intervals = this.beats.length;
-        this.notes.copy(it.notes);
+        this.reps = it.reps;
+        this.beatsPerSecond = it.beatsPerSecond; 
     },
 
-
-    seed: function(x) { this.deck.seed(x); },
-
-
-    // sets using an int, beats per measure, and an array of all beats. Ex: 4,[1,0,1,0]; 8,[0,0,1,1,0,0,0,0]
-    setFromFull: function(count, list) {
-        this.beatCount = count; 
-        this.beats = list; 
-        this.intervals = this.beats.length;     
-    },
-
-
-    // sets using an int, beats per measure, and an array of all beats. Ex: 4,[1,1]
-    setFromUsed: function(count, intv, list) {
-        this.beatCount = count;
-        this.beats = []; 
-        var i = 0; 
-        for (i=0; i<intv; i=i+1) { 
-            this.beats[i] = 0; 
+    secondsPerBeat: function() { 
+        var res = 1.0; 
+        if (this.beatsPerSecond>0) { 
+            res = (1.0 / this.beatsPerSecond); 
         } 
-        for (i=0; i<list.length; i=i+1) {
-            this.beats[list[i]]=1;
-        }
-        this.intervals = this.beats.length; 
+        return res; 
     },
 
-    // sets using an int, beats per measure, and a bit pattern. Ex: 16,0xf080
-    //setFromBits : function(count, list) {
-    //    this.beatCount = count; 
-    //    this.beats = list; 
-    //}
+    secondsPerLoop: function() { 
+        return this.beatCount * this.secondsPerBeat(); 
+    },
 
+    secondsPerPlay: function() { 
+        return this.reps * this.secondsPerLoop(); 
+    },
+
+    // set from array of 0's and 1's
+    setFromArray: function(list) {
+        this.beatCount = list.length; 
+        this.strikes = list; 
+    },
+
+    // set from a string containing # in base-16
+    setFromHex: function(str) {
+    },
+
+    // return a notelist with one note per strike
+    generateNotes: function() {
+    },
+
+/*
     generateEventsForTimes: function(timer, t0, t1, lineTag) { 
         var btIntrv, myIntrv, lastT, endNotCrossed; 
         var lastT, nextT, interIntrv, thisT, intervStartT, i, n;
@@ -1283,14 +1331,14 @@ exLine.prototype = {
         myIntrv = this.beatCount * btIntrv;
         thisMeas = Math.floor(t0/myInterv);  
         measStartT = thisMeas * myIntrv; 
-        myBeatIntrv = (btIntrv * this.beatCount)/this.intervals; 
+        myBeatIntrv = (btIntrv * this.beatCount)/this.beatCount; 
         endNotCrossed = 0; 
         
         n = 0; 
 
         while (endNotCrossed==0) { 
             intervStartT = measStartT + (n*myIntrv);     
-            for (i=0; i<this.intervals; i=i+1) { 
+            for (i=0; i<this.beatCount; i=i+1) { 
                 if (this.beats[i]==1) { 
                     thisT = measStartT +(i*myBeatIntrv); 
                     if ((t0<=thisT) && (thisT<t1)) { 
@@ -1304,14 +1352,15 @@ exLine.prototype = {
             n=n+1;
         }
     },
+*/
 
     // remove percent of the used beats
     thin: function(deck, percent) { 
         var i; 
-        for (i=0; i<this.intervals; i=i+1) {
-            if (this.beats[i] == 1) { 
+        for (i=0; i<this.beatCount; i=i+1) {
+            if (this.strikes[i] == 1) { 
                 if (deck.nextF()<percent) {
-                    this.beats[i] =0; 
+                    this.strikes[i] =0; 
                 }
             }
         }
@@ -1320,10 +1369,10 @@ exLine.prototype = {
     // set percent of the used beats
     thicken: function(deck, percent) { 
         var i; 
-        for (i=0; i<this.intervals; i=i+1) {
-            if (this.beats[i] == 0) { 
+        for (i=0; i<this.beatCount; i=i+1) {
+            if (this.strikes[i] == 0) { 
                 if (deck.nextF()<percent) {
-                    this.beats[i] =1; 
+                    this.strikes[i] =1; 
                 }
             }
         }
@@ -1331,12 +1380,12 @@ exLine.prototype = {
 
     reverse: function() { 
         var i, s, ct, j;
-        ct = Math.floor(this.intervals/2.0); 
+        ct = Math.floor(this.beatCount/2.0); 
         for (i=0; i<ct; i=i+1) {
-            j = this.intervals - i; 
-            s = this.beats[i]; 
-            this.beats[i] = this.beats[j]; 
-            this.beats[j] = s; 
+            j = this.beatCount - i; 
+            s = this.strikes[i]; 
+            this.strikes[i] = this.strikes[j]; 
+            this.strikes[j] = s; 
         }
     },
 
@@ -1344,67 +1393,43 @@ exLine.prototype = {
     multiply: function(n) {
         var i, ct;
         var newList = []; 
-        ct = Math.floor(this.intervals*n);  
+        ct = Math.floor(this.beatCount*n);  
         j= 0; 
         for (i=0; i<ct; i=i+1) {
-            newList.push(this.beats[j]);
+            newList.push(this.strikes[j]);
             j=j+1;   
-            if (j>=this.intervals) { j=0; }
+            if (j>=this.beatCount) { j=0; }
         }
     },
 
-    // superimpose. length of this is not changed. it loops if short
-    superimpose: function(it) {
-        var i, ct;
-        var newList = []; 
-        ct = Math.floor(this.intervals*n);  
-        j= 0; 
-        for (i=0; i<ct; i=i+1) {
-            newList.push(this.beats[j]);
-            j=j+1;   
-            if (j>=this.intervals) { j=0; }
-        }
-    },
 
-    // clears events between start and stop
-    wipe: function(start, stop) {
-        var i1, i2, i;
-        if (start<stop) {   
-            i1 = start;
-            i2 = stop; 
-            if (i1<this.intervals) { 
-                if (i2>=this.intervals) { i2 = this.intervals; }
-                for (i=i1; i<i2; i=i+1) { this.beats[i] = 0; }
-            } 
-        }
-    },
 
     // removes one event 
     removeNth: function(n) { 
-        if (n<this.intervals) { this.beats[n] = 0; }
+        if (n<this.beatCount) { this.strikes[n] = 0; }
     },
 
-    // beats<=n ==1, 0 ow
+    // strikes<=n ==1, 0 ow
     setToFirstN: function(n) { 
         var i, ct;
         var newList = []; 
-        ct = Math.floor(this.intervals*n);  
+        ct = Math.floor(this.beatCount*n);  
         j= 0; 
         for (i=0; i<ct; i=i+1) {
-            newList.push(this.beats[j]);
+            newList.push(this.strikes[j]);
             j=j+1;   
-            if (j>=this.intervals) { j=0; }
+            if (j>=this.beatCount) { j=0; }
         }
     },
 
     // repeat an a+1-length pattern, 1,0,0,..
     setToEveryN: function(n, skipfirst) { 
         var i, j; 
-        for (i=0; i<this.intervals; i=i+1) { 
+        for (i=0; i<this.beatCount; i=i+1) { 
             if (i%n==skipfirst) { 
-                this.beats[i] = 1; 
+                this.strikes[i] = 1; 
             } else {
-                this.beats[i] = 0; 
+                this.strikes[i] = 0; 
             }
         }
     },
@@ -1412,18 +1437,29 @@ exLine.prototype = {
     // n 0's 
     setToEmptyLength: function(n) { 
         var i; 
-        this.beats = []; 
+        this.strikes = []; 
         for (i=0; i<n; ++i) {
-            this.beats.push(0); 
+            this.strikes.push(0); 
         }
     },
 
     // for each, p% chance of being a 1
     randomize: function(density) {
         var i, q;
-        for (i=0; i<this.intervals; i=i+1) {
-            if (deck.nextF()<density) { this.beats[i] = 1; }
+        for (i=0; i<this.beatCount; i=i+1) {
+            if (deck.nextF()<density) { this.strikes[i] = 1; }
         }
+    },
+
+
+    rotate: function(n) {
+        var i, j, newStr; 
+        newStr = []; 
+        for (i=0; i<this.beatCount; i=i+1) {
+            j = (i+n)%this.beatCount;
+            newStr[j] = this.strikes[i];
+        }
+        this.strikes = newStr; 
     }
 }
 

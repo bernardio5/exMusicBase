@@ -1,57 +1,61 @@
-<!DOCTYPE html>
+<!DOCTYPE html >
 <head>
 	<title>exMusicBase/test5</title>
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
-	var theTab, theHand, theList, theKey; 
+	var theList, theClef, theTab, theHand, theLine, theMet; 
 
 	function generate() { 
-		var baseNote, newNote, i;
+		var baseNote, i;
 		
 		baseNote = new exNote(); 		
 		theList = new exNoteList(); 
-		baseNote.midi = 36; 
-
-		for (i=0; i<36; i=i+1) {
-			newNote = theKey.copyStep(baseNote, i);
-			newNote.t = i*.75; 
-			theHand.setANote(newNote); 
-			theList.add(newNote); 
+		
+		for (i=0; i<24; i=i+1) {
+			baseNote.t = theMet.timeOfNthBeat(i); 
+			baseNote.midi = 48+i; 
+			theHand.setANote(baseNote); 
+			theList.add(baseNote); 
 		}
+
 	}
 
-	function setParameters() { 
-		theKey.setModeFromHTMLControl(document); 
-		generate(); 
-	}
 
 	function starter() { 
-		theKey = new exKey(); 
-		
-		var theConts = document.getElementById("exControlHolder");
-		theConts.innerHTML = theKey.getHTMLForModeControl("key1");
-
-		var theCanvas = document.getElementById("mainCanvas");
+		theMet = new exMetronome(33, 60, 4, 16); 
 		theHand = new exTunedHand(); 
-		theTab = new exSpriteTabRow(theCanvas, theList, 0,2, 2, theHand, 0);
 		generate(); 
+		var theCanvas = document.getElementById("mainCanvas");
 
-		setInterval(redraw,1000);  
+		var theKey = new exKey(); 
+		theClef = new exSpriteClefRow(theCanvas, theList, 0,1, 2, theKey, true);
+		theClef.redrawer(); 
+
+		theTab = new exSpriteTabRow(theCanvas, theList, 0,9, 2, theHand, true);
+		theClef.redrawer(); 
+
+//          function exSpriteTimeLine(aCanvas, aNoteList, x0,y0, tilesPerSec, aSignature, showClef) {
+		theLine = new exSpriteTimeLine(theCanvas, theList, 0,9, 2, theMet, true);
+		theLine.redrawer(); 
+
+		setInterval(redraw,33);  
 	}
 
 	function redraw() {
-		theTab.clearAll(); 
-		theTab.notes = theList;
+		theMet.update(); 
+
+		theClef.clearAll(); 
+
+		theClef.redrawer(); 
 		theTab.redrawer(); 
+		theLine.redrawer(); 
 	}
 
 	</script>
 </head>
 <body  onLoad="starter();">
-	Test 5: Controls, score regeneration
-	<canvas id="mainCanvas" width="782" height="180"></canvas> 
-<br> 
-	<div id="exControlHolder"></div>
+	Test 5: Timeline, moving, with tab and clef, aligned. 
+	<canvas id="mainCanvas" width="782" height="320"></canvas> 
 </body>
 </html>
