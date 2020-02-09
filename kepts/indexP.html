@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<link rel="stylesheet" href="../linkHelp/styles.css">
+<script type="text/javascript">
+	var tiles, theCanvas, theContext, loaded1, isPaused;
+
+	var sharps, heights;
+	var framesPerLoop, timeCounter, freqs, previousInterval; 
+	var intervals, fundamental;
+	var funSel, octSel, rangeSel, modeSel; 
+	var audioCon, gainNode, oscillator, gainNode2, oscillator2, hasAudio;
+
+	var knownChords, order, playing, chords, chordSwitch;
+	
+	// primary init 
+	function startAnimation() { 
+		var i; 
+		theCanvas = document.getElementById("boardCanvas");
+		theContext = theCanvas.getContext("2d");
+		theContext.fillStyle = 'white';
+		theContext.font = "20px Verdana";
+
+		loaded1 = 0; 
+		tiles = new Image(); 
+		tiles.src = "trainerTiles.png"; 
+		tiles.onload = function() { loaded1=1; }
+		
+		framesPerLoop = 28800.0 / 110.0;
+		funSel = 0; 
+		octSel = 60; 
+		rangeSel = 3;
+		modeSel = 0;  
+
+		//                   c     c#    d       d#     e      f           f#    g   g#        a      a#    b
+		heights = new Array( 0.0, 0.0, 10.0,    10.0, 20.0,   30.0,      30.0, 40.0, 40.0,    50.0, 50.0, 60.0 );
+		sharps = new Array ( 0, 1, 0,  1, 0, 0,  1, 0, 1, 0, 1, 0 );
+		freqs = new Array( 32.703, 34.648, 36.708, 38.891, 41.203,   43.654, 46.249, 48.999, 51.913, 55.0,   58.270, 61.735, 
+						   65.406, 69.296, 73.416, 77.782, 82.407,   87.307, 92.499, 97.999, 103.83, 110.00, 116.54, 123.47, 
+						  130.81, 138.59, 146.83, 155.56, 164.81,   174.61, 185.00, 196.00, 207.65, 220.00, 233.08, 246.94, 
+						  261.63, 277.18, 293.67, 311.13, 329.63,   349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88, 
+						  523.25, 554.37, 587.33, 622.25, 659.26,    698.46, 739.99, 783.99, 830.61, 880.00, 932.33, 987.77,
+						  1046.5, 1108.7, 1174.7, 1244.5, 1318.5,   1396.9, 1480.0, 1568.0, 1661.2, 1760.0, 1864.7, 1975.5, 
+						  2093.0, 2217.5, 2349.3, 2489.0, 2637.0,   2793.0, 2960.0, 3136.0, 3322.4, 3520.0, 3729.3, 3951.1
+						  ); 
+
+        namedChords = {
+	        ['M',4,7], ['m',3,7], ['+',4,8], 
+	        ['o',3,6], ['M6',4,7,9], ['m6',3,7,9],
+	        ['7',4,7,10], ['M7',4,7,11], ['m7',3,7,10], 
+	        ['+7',4,8,10], ['o7',3,6,9], ['0',3,6,10], 
+	        ['07',3,6,10], ['mM7',3,7,11], ['+M7',4,8,11], 
+	        ['7+5',4,6,10], ['M9',4,7,11,14], ['9',4,7,10,14], ['mM9',3,7,11,14],
+	        ['-M9',3,7,11,14], ['m9',3,7,10,14], ['-9',3,7,10,14], ['+M9',4,8,11,14], 
+	        ['+9',4,8,10,14], ['09',3,6,10,14], ['0f9',3,6,10,13], ['o9',3,6,9,14], 
+	        ['of9',3,6,9,13], ['11',4,7,10,14,17], ['M11',4,7,11,14,17], 
+	        ['mM11',3,7,11,14,17], ['-M11',3,7,11,14,17], ['m11',3,7,10,14,17],
+	        ['-11',3,7,10,14,17], ['+M11',4,8,11,14,17], ['+11',4,8,10,14,17], 
+	        ['011',3,6,10,13,17], ['o11',3,6,9,13,16], ['M13',4,7,11,14,17,21], 
+	        ['13',4,7,10,14,17,21], ['mM13',3,7,11,14,17,21], ['-M13',3,7,11,14,17,21],
+	        ['m13',3,7,11,14,17,21], ['-13',3,7,10,14,17,21], ['+M13',4,8,11,14,17,21], 
+	        ['013',[3,6,10,14,17,21]
+	    };
+
+        tuning = [40,45,50,55,59,64]; // standard guitar e2 a2 d3 g3 b3 e4
+        label1 = '';label3 = '';label2 = '';
+						  // 0 is index 14
+		major = new Array(-24,-22,-20, -19,-17,  -15,-13,-12,  -10,-8,-7,  -5,-3,-1,  0, 
+							2,4,5,  7,9,11,  12,14,16,  17,19,21,  23,24 );  
+		order = new Array(-1,-1,-1,-1, -1,-1,-1,-1,   -1,-1,-1,-1, -1,-1,-1,-1);
+		playing = new Array(-1,-1,-1,-1,  -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1);
+		chords = new Array(-1, -1, -1, -1, -1, -1);
+		chordSwitch = 0; 
+
+		scoreReset(); 
+		hasAudio = 0; // must wait for touch up? 
+		isPaused = false; 
+		setInterval(redrawer, 33); // 30FPS
+	}
+	
+	
+	// re-init; callback for all parameter changes
+	function setParameters() { 
+        speedSel = parseInt(document.getElementById('bpm').value);
+        // frames/loop = beats/loop * min/beat * sec/min * frames/sec
+		//             = 16         * 1/speedSel * 60    * 30
+		framesPerLoop = 28800.0 / speedSel; 
+		
+        funSel = parseInt(document.getElementById('fundamental').value);
+
+        if (hasAudio===0) { 
+			audioCon = new webkitAudioContext();
+			oscillator = audioCon.createOscillator();
+		//	oscillator2 = audioCon.createOscillator();
+			gainNode = audioCon.createGain(); 
+//			gainNode2 = audioCon.createGain(); 
+		
+			try {
+				window.AudioContext = window.AudioContext||window.webkitAudioContext;
+				context = new AudioContext();
+			} catch(e) {
+				alert('Web Audio API is not supported in this browser');
+			}
+			
+		    oscillator.type = 0
+	    	oscillator.frequency.value = 220.0// freqs[note-24];
+//		    oscillator2.type = 0
+//	    	oscillator2.frequency.value = 220.0// freqs[note-24];
+	    	gainNode.gain.value = 0.0; 
+//	        gainNode2.gain.value = 0.0; 
+	        oscillator.connect(gainNode);
+//	        oscillator2.connect(gainNode2);
+	        gainNode.connect(audioCon.destination);
+//	        gainNode2.connect(audioCon.destination);
+	        oscillator.start(); 
+//	        oscillator2.start(); 
+	        gainNode.gain.value = 0.0; 
+//	        gainNode2.gain.value = 0.0; 
+	        hasAudio = 1; 
+	    }
+        scoreReset(); 
+	};
+
+	function pauseUnpause() { 
+		if (isPaused) { 
+			isPaused=false; 
+		}
+		else { 
+			isPaused = true; 
+			gainNode.gain.value = 0.0; 
+//	        gainNode2.gain.value = 0.0; 
+	    }
+	}
+
+
+	/////////// representations of notes
+
+    function play(note, note2) {
+    	if ((hasAudio===1)&&(!isPaused)) {
+			if ((note>23)&&(note<105)) {
+				oscillator.frequency.value = freqs[note-24];
+				gainNode.gain.value = 0.49; 
+			} else {
+				gainNode.gain.value = 0.0;
+			}
+			if ((note2>23)&&(note2<105)) {
+				//oscillator2.frequency.value = freqs[note2-24];
+				//gainNode2.gain.value = 0.49; 
+			} else {
+				//gainNode2.gain.value = 0.0;
+			}
+	    }
+	};
+
+	
+	const TILESZ =32; 
+	
+	function drawSprite(x, y, tx, ty, txsz, tysz) { 
+		theContext.drawImage(tiles, tx*TILESZ, ty*TILESZ, txsz*TILESZ, 
+			tysz*TILESZ, x*TILESZ, y*TILESZ, txsz*TILESZ, tysz*TILESZ); 
+	}
+	function drawSpot(x, y) { 
+		theContext.drawImage(tiles, 9*TILESZ, 6*TILESZ, TILESZ, TILESZ, x, y, TILESZ, TILESZ); 
+	}
+	function drawLine(x, y) { 
+		theContext.drawImage(tiles, 12*TILESZ, 6*TILESZ, TILESZ, TILESZ, x, y, TILESZ, TILESZ); 
+	}
+	function drawSharp(x, y) { 
+		theContext.drawImage(tiles, 7*TILESZ, 6*TILESZ, TILESZ, TILESZ, x, y, TILESZ, TILESZ); 
+	}
+	
+	
+	// draw the note on the page
+	function drawNote(theNote, step) { 
+		var gx, placeInScale, octave, isSharp, base, noteHeight; 
+	
+		if ((theNote<24)||(theNote>104)) { return; }
+		placeInScale = (theNote %12); 
+		octave = Math.floor(((theNote-placeInScale))/12.0);
+		isSharp = sharps[placeInScale]; 
+	
+		base = 216.0 - (octave-4)*70.0;
+		noteHeight = base - heights[placeInScale];
+	
+		gx = 128+ (step*30.0); 
+		drawSpot(gx, noteHeight); 
+		
+		if (isSharp==1) { 
+			drawSharp(gx-12.0, noteHeight-8.0);
+		}
+		
+		if (theNote>68) { 
+			drawLine(gx, 96.0);
+		}
+		if (theNote>71) { 
+			drawLine(gx, 76.0);
+		}
+		if (theNote>75) { 
+			drawLine(gx, 56.0);
+		}
+		if (theNote>78) { 
+			drawLine(gx, 36.0);
+		}
+		if (theNote>81) { 
+			drawLine(gx, 16.0);
+		}
+		
+		if (theNote<50) {
+			drawLine(gx, 216.0);
+		}
+		if (theNote<47) {
+			drawLine(gx, 236.0);
+		}
+		if (theNote<44) {
+			drawLine(gx, 256.0);
+		}
+		if (theNote<41) {
+			drawLine(gx, 276.0);
+		}
+		if (theNote<36) {
+			drawLine(gx, 296.0);
+		}
+		if (theNote<32) {
+			drawLine(gx, 316.0);
+		}
+	}
+
+	
+	// generate a note
+	function makeANote() { 
+		var rand = Math.floor(Math.random()*rangeSel*2)-rangeSel; 
+		return fundamental + major[rand+14]; 
+	}
+
+
+	// called by args reset 
+	function scoreReset() { 
+		var i; 
+		// select chords-- how? 
+		mainSet = knownChords[funSel];
+		fifthSet = knownChords[(funSel+5)%12];
+
+		i = Math.floor(Math.random()* mainSet.length);
+		var ch1 = mainSet[i]; 
+		label1 = ch1[0]; 
+		i = Math.floor(Math.random()* mainSet.length);
+		var ch2 = mainSet[i];
+		label2 = ch2[0]; 
+		i = Math.floor(Math.random()* fifthSet.length);
+		var ch3 = fifthSet[i];
+		label3 = ch3[0]; 
+
+		order = [ 0, 1, 2,  3, 4, 5,  -1, -1,   3, 4, -1, -1,   2, -1, -1,  -1 ];
+		whichChord = 0; 
+
+		// convert chord tabs to MIDI note values
+		for (i=0; i<6; i=i+1) {
+			chords[i] = ch1[i+1] + tuning[i];
+			chords[i+6] = ch2[i+1] + tuning[i];
+			chords[i+12] = ch3[i+1] + tuning[i];
+			if (ch1[i+1]===-1) { chords[i] = -1; }
+			if (ch2[i+1]===-1) { chords[i+6] = -1; }
+			if (ch3[i+1]===-1) { chords[i+12] = -1; }
+		}
+	
+		for (i=0; i<16; ++i) { 
+			if (order[i]!=-1) {
+				playing[i] = chords[order[i]];
+			} else {
+				playing[i] = -1; 
+			}
+		}
+
+		previousInterval = -1; 
+		timeCounter = framesPerLoop; 
+	}
+	
+	
+	function jostle() { 
+		var i, j; 
+		if (Math.random()<0.02) { // 1 time out of 50, just reset
+			scoreReset(); 	
+		} else {
+			if (Math.random()>0.5) {
+				i = Math.floor(Math.random()*16);
+				j = Math.floor(Math.random()*10) - 4;
+				if (j<-1) { j=-1; }
+				order[i] = j; 
+			} else {
+				whichChord = Math.floor(Math.random()*3);
+			}
+
+			j = whichChord * 6; 
+			for (i=0; i<16; ++i) { 
+				if (order[i]!=-1) {
+					playing[i] = chords[order[i]+j];
+				} else {
+					playing[i] = -1; 
+				}
+			}
+		}
+	}
+
+	
+
+	///////////  core loop 
+	function redrawer() {
+		var i, interval, lex, ley; 
+		if (!isPaused) { 
+			-- timeCounter; 
+			fract = timeCounter/framesPerLoop; // fract goes down from 1
+			interval = 15 - Math.floor(fract/.0625); // interval e 0-15
+
+			if (!(interval===previousInterval)) { 
+				previousInterval = interval; 
+				play(playing[interval], -1); 
+			}
+			if (timeCounter<1) { 
+				timeCounter = framesPerLoop; 
+				jostle(); 
+			}
+			theContext.beginPath(); // erase all
+			theContext.rect(0,0, 700, 360);
+			theContext.fill();
+			if (loaded1==1) { 	
+				drawSprite(1, 3,  0, 1,  15, 5); // clef and lines
+				drawSprite(14, 3, 10, 1,  6, 5);
+				for (i=0; i<16; ++i) { 
+					drawNote(playing[i], i); 
+//					drawNote(playing2[i], i); 
+				}
+				drawSprite((interval*15/16)+4, 2, 8, 6, 1, 1);  // slide		
+			}
+
+            theContext.fillStyle = 'black';
+            switch (whichChord) {
+            	case 0: theContext.fillText(label1, 50, 50); break;
+            	case 1: theContext.fillText(label2, 50, 50); break;
+            	case 2: theContext.fillText(label3, 50, 50); break;
+            }
+            theContext.fillStyle = 'white';
+		}
+	}
+</script>
+
+
+
+</head>
+<body onload="startAnimation();">
+<center>
+<div>
+ 	<canvas id="boardCanvas" width="700" height="360"></canvas></div>
+<div>
+     	Speed (BPM):<select id="bpm">
+            <option value="360">360</option>
+            <option value="240">240</option>
+            <option value="200">200</option>
+            <option value="180">180</option>
+            <option value="140">140</option>
+            <option value="120">120</option>
+            <option value="110" selected="selected">110</option>
+            <option value="100">100</option>
+            <option value="90">90</option>
+            <option value="80">80</option>
+            <option value="70">70</option>
+            <option value="60">60</option>
+            <option value="50">50</option>
+            <option value="40">40</option>
+            <option value="30">30</option>
+            </select>
+        Key/Octave: 
+    	<select id="fundamental">
+    		<option value="0" selected="selected">C</option>
+    		<option value="1">C#</option>
+    		<option value="2">D</option>
+    		<option value="3">D#</option>
+    		<option value="4">E</option>
+    		<option value="5">F</option>
+    		<option value="6">F#</option>
+    		<option value="7">G</option>
+    		<option value="8">G#</option>
+    		<option value="9">A</option>
+    		<option value="10">A#</option>
+    		<option value="11">B</option>
+    		</select>
+    	<button onclick="setParameters();" href="javascript:;">Go</button>
+    	<button onclick="pauseUnpause();" href="javascript:;">Pause</button>
+    	<br>
+    	Use of a list of guitar chords; pick three, switch between them 
+    </div>
+    </center>
+
+
+
+
+
+
+
+
+</body></html>
