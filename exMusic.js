@@ -1,6 +1,21 @@
 
 
+/*
+ * Ok, so, first version contains all the nformation, but fails on usability. 
+ how to work with note lists? Surely someone had solved this. 
+ * 
+ Operations on lists
+ * chunk up into parts that have more data/value; process them
+ *    motifs, chords, hand placements, beat lines, 
+ * filters, combers: take the list; remove or jostle. 
+ * recognizers: id chunks, then change, then re-recognize, 
+ *    add noise to blur focus
 
+
+When mixing paints, if you use more than 3, it's just brown. 
+* Bottom-up organizations of notes in a work are probably similar. 
+* 
+*/
 
 
 ///////////////////// ultimately, arrays of notes
@@ -85,7 +100,7 @@ exNote.prototype = {
     }, 
 
 
-/* ok, musical theorists: interval naming
+/* interval naming
 semis   Min/maj/perf    Short   Augmented/dimd     Short  ~Ratio    Other names
 0      Perfect unison    P1  Diminished second       d2    1:1        
 1      Minor second      m2  Augmented unison[5][7]  A1         Semitone,[8] half tone, half step   S   
@@ -389,7 +404,10 @@ exNoteList.prototype = {
     }
 
 }
-
+// operations on lists of lists
+// groupings of notes into chords, break up, remerge. 
+// how to separate provisionally? data in notes? 
+// 
 
 
 ///////////////////////////////////////// key
@@ -399,7 +417,7 @@ exNoteList.prototype = {
 ///////////////////////////////////////// key
 
 
-/// exKey: given a tonic and a mode, test for inclusion, generate steps, ...
+// exKey: given a tonic and a mode, test for inclusion, generate steps, ...
 // set tonic and mode; you have a key
 
 // the octave of the tonic does not affect the key. 
@@ -408,15 +426,20 @@ function exKey() {
     this.tonic = 60;  //  Middle C
     this.mode = 0; // major
     this.modes = [
-        [ 0, 2,4, 5,7,9,11 ], // major
-        [ 0, 2,3, 5,7,8,10 ], // minor
-        [ 0, 2,3, 5,7,9,10 ], // dorian
-        [ 0, 2,4, 5,6,10   ], // wholetone
-        [ 0, 2,3, 6,7,8,10 ], // "hungarian"
-        [ 0, 4,6, 7,11     ], // "chinese"  // sorry! old sources
-        [ 0, 1,3, 5,7,9,10 ],  // "javan"
-        [ 0,1,2,3,4,5,6,7,8,9,10,11 ]
+        [ 0, 2,4, 5,7, 9,11 ], // major
+        [ 0, 2,3, 5,7, 8,10 ], // minor
+        [ 0, 2,3, 5,7, 9,10 ], // dorian
+        [ 0, 2,4, 5,6, 10   ], // wholetone
+        [ 0, 2,3, 6,7, 8,10 ], // "hungarian"
+        [ 0, 4,   6,7, 11   ], // "chinese" 
+        [ 0, 1,3, 5,7, 9,10 ],  // "javan"
+		[ 0, 2,4, 7,   9 ], // major pentatonic
+		[ 0, 3,   5,7, 9 ], // minor pentatonic
+		[ 0, 3,   5,6,7, 10 ], // blues
+		[ 0, 2,3, 5,7, 8,10 ], // Aolian
+        [ 0, 1,2,3,4,5,6,7,8,9,10,11 ] // diatonic
     ];
+    this.numberNames = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii'];
     this.mode = 0; // major
     this.modeLen = 7; // |major|
     this.scale = [0,2,4,5,7,9,11];
@@ -424,17 +447,6 @@ function exKey() {
     this.HTMLTag = "XX"; // enables multiple key controls to have unique HTML/DOM id's
     this.recalculate();
 }
-/*
-    this.modes = [
-[ 0, 2,4, 5,7,9,11, 12, 14,16, 17,19,21,23, 24, 26,28, 29,31,33,35, 36, -1,-3,-5,-7,-8,-10,-12 ], //major
-[ 0, 2,3, 5,7,8,10, 12, 14,15, 17,19,20,22, 24, 26,27, 29,31,32,34, 36, -2,-4,-5,-7,-9,-10,-12 ], // minor
-[ 0, 2,3, 5,7,9,10, 12, 14,15, 17,19,21,22, 24, 26,27, 29,31,33,34, 36, -2,-3,-5,-7,-9,-10,-12 ], // dorian
-[ 0, 2,4, 5,6,10,   12, 14,16, 17,18,22,    24, 26,28, 29,30,34,    36, -2,-6,-7,-8,-10,-12    ], // wholetone
-[ 0, 2,3, 6,7,8,10, 12, 14,15, 18,19,20,22, 24, 26,28, 30,31,32,34, 36, -2,-4,-5,-6,-8,-10,-12 ],// hungarian
-[ 0, 4,6, 7,11,     12, 16,18, 19,23,       24, 28,30, 31,35,       36, -1,-5,-6,-8,-12 ], // "chinese"
-[ 0, 1,3, 5,7,9,10, 12, 13,15,17,19,21,22,  24, 25,27,29,31,33,34,  36, -2,-3,-5,-7,-9,-11,-12 ], // javan
-    ];
-*/
 
 exKey.prototype =  { 
     recalculate: function() { 
@@ -537,9 +549,13 @@ exKey.prototype =  {
         res = res + " <option value='2'>Dorian</option>";
         res = res + " <option value='3'>Whole</option>";
         res = res + " <option value='4'>Hungarian</option>";
-        res = res + " <option value='5'>Pentatonic</option>";
-        res = res + " <option value='6'>Heptatonic</option>";
-        res = res + " <option value='7'>12</option>"; // seriously? kinda moots key.
+        res = res + " <option value='5'>Chinese</option>";
+        res = res + " <option value='6'>Javan</option>";
+        res = res + " <option value='7'>M Pentatonic</option>";
+        res = res + " <option value='8'>m Pentatonic</option>";
+        res = res + " <option value='9'>Blues</option>";
+        res = res + " <option value='10'>Aolian</option>";
+        res = res + " <option value='11'>Chromatic</option>"; // seriously? kinda moots key.
         res = res + "</select><button onclick='setParameters();'' href='javascript:;''>Go</button>";
         return res; 
     },
@@ -556,7 +572,14 @@ exKey.prototype =  {
         tag = "exKeyMode"+ this.HTMLTag;
         this.mode = parseInt(doc.getElementById(tag).value); 
         this.recalculate();  
-    }
+    },
+    
+    getNumberChord: function(nm) { 
+		// given the number, return a nl with the given num chord
+		// 1 convert number to int-1
+		// count that many steps up the scale
+		// give that note, skip up the next two, next 4
+	}
 }
 
 
@@ -567,29 +590,8 @@ exKey.prototype =  {
 ///////////////////////////////////////// chord
 ///////////////////////////////////////// chord
 // chords produce noteLists using a tonic, mode, and a name. 
-// don't know the theory to name inverted chords yet... 
 
-
-/* ok, musical theorists: interval naming
-semis   Min/maj/perf    Short   Augmented/dimd     Short  ~Ratio    Other names
-0      Perfect unison    P1  Diminished second       d2    1:1        
-1      Minor second      m2  Augmented unison[5][7]  A1         Semitone,[8] half tone, half step   S   
-2      Major second      M2  Diminished third        d3         Tone, whole tone, whole step        T   
-3      Minor third       m3  Augmented second        A2    6:5    
-4      Major third       M3  Diminished fourth       d4    5:4      
-5      Perfect fourth    P4  Augmented third A3            4:3 
-6                            Diminished fifth        d5         Tritone[6]                          TT  
-                             Augmented fourth        A4
-7      Perfect fifth     P5  Diminished sixth        d6    3:2      
-8      Minor sixth       m6  Augmented fifth A5          
-9      Major sixth       M6  Diminished seventh      d7         
-10     Minor seventh     m7  Augmented sixth A6         
-11     Major seventh     M7  Diminished octave       d8        
-12     Perfect octave    P8  Augmented seventh       A7    2:1      
-and then, chord naming 
-
-
-
+/*  chord naming 
 Short   Long    Third   Fifth   Added   C version   semitones     names                 steps in key
 C, CM   C,Cmaj  maj3    perf5           C-E-G       0,4,7       Major triad             M  0,2,4
 Cm      Cmin    min3    perf5           C-E♭-G      0,3,7       Minor triad             m  0,2,4   
@@ -632,6 +634,17 @@ Cm13,C−13   Cmin13                      C-E♭-G-B♭-D-F-A 0,3,7,10,14,17,21 
 C+M13       Caugmaj13                   C-E-G♯-B-D-F-A  0,4,8,11,14,17,21  Augmented Major 13th    
 C+13,C13♯5  Caug13                      C-E-G♯-B♭-D-F-A 0,4,8,10,14,17,21  Augmented Dominant 13th 
 CØ13                                  C-E♭-G♭-B♭-D-F-A  0,3,6,10,14,17,21  Half-Diminished 13th    
+
+Numbered chords are defined wrt M/m chords of a tonic that is usually not in the chord
+For instance, for CM: 	
+#	chord	notes	semitones (up from tonic)	worry about going up too much? 
+I	CM		C-E-G	0,4,7						0,4,7
+II	Dm		DFA		2,5,9 ((0,3,7)+2)			-3,2,5
+III Em		Eetc	4,7,11						-1,4,7
+IV  FM		F		5,9,12						-3,0,5
+V   GM		G		7,11,14						-1,2,7
+VI  Am		A		9,12,16	((0,4,8)+9)			-3,0,4
+VII Bo7		B		11,14,17,20	 ((0,3,6,9)+11)	-1,2,5,8
 */
 
 function exChord() { 
@@ -643,37 +656,90 @@ function exChord() {
 
     this.notes = new exNoteList(); 
 
-    this.namedChords = { // move to prototype
-        '-': [4,7],
-        'M': [4,7],
-        'm': [3,7],
-        '+': [4,8], 'o': [3,6], 'M6': [4,7,9], 'm6': [3,7,9],
-        '7': [4,7,10], 'M7': [4,7,11], 'm7': [3,7,10], '+7': [4,8,10], 
-        'o7': [3,6,9], '0': [3,6,10], '07': [3,6,10],
-        'mM7': [3,7,11], '+M7': [4,8,11], '7+5': [4,6,10], 
-        'M9': [4,7,11,14], '9': [4,7,10,14], 'mM9': [3,7,11,14],
-        '-M9': [3,7,11,14], 'm9': [3,7,10,14], '-9': [3,7,10,14], 
-        '+M9': [4,8,11,14], '+9': [4,8,10,14],
-        '09': [3,6,10,14], '0f9': [3,6,10,13], 'o9': [3,6,9,14], 
-        'of9': [3,6,9,13], '11': [4,7,10,14,17],
-        'M11': [4,7,11,14,17], 'mM11': [3,7,11,14,17], 
-        '-M11': [3,7,11,14,17], 'm11': [3,7,10,14,17],
-        '-11': [3,7,10,14,17], '+M11': [4,8,11,14,17], 
-        '+11': [4,8,10,14,17], '011': [3,6,10,13,17], 'o11': [3,6,9,13,16],
-        'M13': [4,7,11,14,17,21], '13': [4,7,10,14,17,21], 
-        'mM13': [3,7,11,14,17,21], '-M13': [3,7,11,14,17,21],
-        'm13': [3,7,11,14,17,21], '-13': [3,7,10,14,17,21], 
-        '+M13': [4,8,11,14,17,21], '013': [3,6,10,14,17,21]
+    this.namedChords = { 
+        '-': [0,4,7],
+        'M': [0,4,7],
+        'm': [0,3,7],
+        '+': [0,4,8], 'o': [0,3,6], 'M6': [0,4,7,9], 'm6': [0,3,7,9],
+        '7': [0,4,7,10], 'M7': [0,4,7,11], 'm7': [0,3,7,10], '+7': [0,4,8,10], 
+        'o7': [0,3,6,9], '0': [0,3,6,10], '07': [0,3,6,10],
+        'mM7': [0,3,7,11], '+M7': [0,4,8,11], '7+5': [0,4,6,10], 
+        'M9': [0,4,7,11,14], '9': [0,4,7,10,14], 'mM9': [0,3,7,11,14],
+        '-M9': [0,3,7,11,14], 'm9': [0,3,7,10,14], '-9': [0,3,7,10,14], 
+        '+M9': [0,4,8,11,14], '+9': [0,4,8,10,14],
+        '09': [0,3,6,10,14], '0f9': [0,3,6,10,13], 'o9': [0,3,6,9,14], 
+        'of9': [0,3,6,9,13], '11': [0,4,7,10,14,17],
+        'M11': [0,4,7,11,14,17], 'mM11': [0,3,7,11,14,17], 
+        '-M11': [0,3,7,11,14,17], 'm11': [0,3,7,10,14,17],
+        '-11': [0,3,7,10,14,17], '+M11': [0,4,8,11,14,17], 
+        '+11': [0,4,8,10,14,17], '011': [0,3,6,10,13,17], 'o11': [0,3,6,9,13,16],
+        'M13': [0,4,7,11,14,17,21], '13': [0,4,7,10,14,17,21], 
+        'mM13': [0,3,7,11,14,17,21], '-M13': [0,3,7,11,14,17,21],
+        'm13': [0,3,7,11,14,17,21], '-13': [0,3,7,10,14,17,21], 
+        '+M13': [0,4,8,11,14,17,21], '013': [0,3,6,10,14,17,21],
+        'I': [0,4,7], 'II':[2,5,9], 'III':[4,7,11], 'IV':[5,9,12], 
+        'V':[7,11,14],'VI':[9,13,17],'VII':[11,14,17],
     };
-
-    this.numberNames = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii']; 
-
+	// numbered chords happen wrt keys,
+	// but they're also all in Major or minor, so the intervals are simple
     this.available = ['-', 'M', 'm', '+', 'o', 'M6', 'm6',
         '7', 'M7', 'm7', '+7', 'o7', '0', '07', 'mM7', '+M7', '7+5', 
         'M9', '9', 'mM9', '-M9', 'm9', '-9', '+M9', '+9', '09', '0f9', 'o9', 'of9', 
         '11', 'M11', 'mM11', '-M11', 'm11', '-11', '+M11', '+11', '011', 'o11',
-        'M13', '13', 'mM13', '-M13', 'm13', '-13', '+M13', '013']; 
-
+        'M13', '13', 'mM13', '-M13', 'm13', '-13', '+M13', '013',
+        'I', 'II', 'III', 'IV', 'V', 'VI', 'VII']; 
+        
+    this.guitarChords = [
+	        [ ['C',-1,2,1,0,1,0],     ['C',3,3,2,0,1,0],      ['Cm',-1,3,5,5,4,3],    ['C6',-1,0,2,2,1,3], 
+	          ['C7',0,3,2,3,1,0],     ['C9',-1,3,2,3,3,3],    ['Cm6',-1,-1,1,2,1,3],  ['Cm7',-1,-1,1,3,1,3], 
+	          ['CM7',-1,3,2,0,0,0],   ['Co',-1,-1,1,2,1,2],   ['C+',-1,-1,2,1,1,0],   ['Csus',-1,-1,3,0,1,3], 
+	        ], [ 
+	          ['C#b',-1,-1,3,1,2,1],  ['C#m',-1,-1,2,1,2,0],  ['C#6',-1,-1,3,3,2,4],  ['C#7',-1,-1,3,4,2,4],
+	          ['C#9',-1,4,3,4,4,4],   ['C#m6',-1,-1,2,3,2,4], ['C#m7',-1,-1,2,4,2,4], ['C#M7',-1,4,3,1,1,1],
+	          ['C#o',-1,-1,2,3,2,3],  ['C#+',-1,-1,3,2,2,1],  ['C#sus',-1,-1,3,3,4,1],
+	        ],[
+	          ['D',-1,-1,0,2,3,2],    ['Dm',-1,-1,0,2,3,1],  ['D6',-1,0,0,2,0,2],    ['D7',-1,-1,0,2,1,2], 
+	          ['D9',2,0,0,2,1,0],     ['Dm6',-1,-1,0,2,0,1], ['Dm7',-1,-1,0,2,1,1],  ['DM7',-1,-1,0,2,2,2], 
+	          ['Do',-1,-1,0,1,0,1],   ['D+',-1,-1,0,3,3,2],  ['Dsus',-1,-1,0,2,3,3],  
+	        ],[
+	          ['D#',-1,-1,3,1,2,1],    ['D#m',-1,-1,4,3,4,2],  ['D#6',-1,-1,1,3,1,3],   ['D#7',-1,-1,1,3,2,3], 
+	          ['D#9',1,1,1,3,2,1],     ['D#m6',-1,-1,1,3,1,2], ['D#m7',-1,-1,1,3,2,2], ['D#M7',-1,-1,1,3,3,3], 
+		      ['D#o',-1,-1,1,2,1,2],   ['D#+',-1,-1,1,0,0,3],  ['D#sus',-1,-1,1,3,4,4], 
+	        ],[
+		        ['E',0,2,2,1,0,0],    ['Em',0,2,2,0,0,0],   ['E6',0,2,2,1,2,0],   ['E7',0,2,2,1,3,0], 
+	    	    ['E9',0,2,0,1,0,2],   ['Em6',0,2,2,0,2,0],  ['Em7',0,2,0,0,0,0],  ['EM7',0,2,1,1,0,-1], 
+	        	['Eo',-1,-1,2,3,2,3], ['E+',-1,-1,2,1,1,0], ['Esus',0,2,2,2,0,0],
+	        ],[
+		        ['F',1,3,3,2,1,1],    ['Fm',1,3,3,1,1,1],    ['F6',-1,-1,0,2,1,1], ['F7',1,3,1,2,1,1], 
+		        ['F9',-1,-1,3,2,4,3], ['Fm6',-1,-1,0,1,1,1], ['Fm7',1,3,1,1,1,1],  ['FM7',-1,-1,3,2,1,0], 
+	    	    ['Fo',-1,-1,0,1,0,1], ['F+',-1,-1,3,2,2,1],  ['Fsus',-1,-1,3,3,1,1],  
+	        ],[
+		        ['F#',2,4,4,3,2,2],    ['F#m',2,4,4,2,2,2],    ['F#6',-1,4,4,3,4,-1],  ['F#7',-1,-1,4,3,2,0], 
+		        ['F#9',-1,-1,2,1,4,3], ['F#m6',-1,-1,1,2,2,2], ['F#m7',-1,-1,2,2,2,2], ['F#M7',-1,-1,4,3,2,1], 
+	    	    ['F#o',-1,-1,1,2,1,2], ['F#+',-1,-1,4,3,3,2],  ['F#sus',-1,-1,4,4,2,2],  
+	        ],[
+		        ['G',3,2,0,0,0,3],    ['Gm',3,5,5,3,3,3],     ['G6',3,2,0,0,0,0],    ['G7',3,2,0,0,0,1],
+		        ['G9',3,0,0,2,0,1],   ['Gm6',-1,-1,2,3,3,3],  ['Gm7',3,5,3,3,3,3],   ['GM7',-1,-1,5,4,3,2],
+		        ['Go',-1,-1,2,3,2,3], ['G+',-1,-1,1,0,0,3],   ['Gsus',-1,-1,0,0,1,3], 
+	        ],[
+		        ['G#',4,6,6,5,4,4],    ['G#m',4,6,6,4,4,4],    ['G#6',4,3,1,1,1,1],    ['G#7',-1,-1,1,1,1,2],
+		        ['G#9',-1,-1,1,3,1,2], ['G#m6',-1,-1,3,4,4,4], ['G#m7',-1,-1,1,1,0,2], ['G#M7',-1,-1,1,1,1,3],
+		        ['G#o',-1,-1,0,1,0,1], ['G#+',-1,-1,2,1,1,0],  ['G#sus',-1,-1,1,1,2,4], 
+	        ],[
+		        ['A',-1,0,2,2,2,0],   ['Am',-1,0,2,2,1,0], ['A6',-1,0,2,2,2,2],   ['A7',-1,0,2,2,2,3], 
+		        ['A9',-1,0,2,4,2,3],  ['Am6',0,0,2,2,1,2], ['Am7',-1,0,2,1,2,0],  ['AM7',-1,0,2,1,2,0], 
+		        ['Ao',-1,-1,1,2,1,2], ['A+',-1,0,3,2,2,1], ['Asus',-1,-1,2,2,3,0], 
+	        ],[
+		        ['A#',-1,1,3,3,3,1],   ['A#m',-1,1,3,3,2,1],   ['A#6',1,1,3,3,3,3],    ['A#7',-1,-1,3,3,3,4], 
+		        ['A#9',1,1,3,1,1,1],   ['A#m6',-1,-1,3,3,2,3], ['A#m7',-1,-1,3,3,2,4], ['A#M7',-1,1,3,2,3,-1], 
+		        ['A#o',-1,-1,2,3,2,3], ['A#+',-1,-1,0,3,3,2],  ['A#sus',-1,-1,3,3,4,1], 
+	        ],[
+		        ['B',-1,2,4,4,4,2],   ['Bm',-1,2,4,4,3,2],    ['B6',2,2,4,4,4,4],    ['B7',0,2,1,2,0,2], 
+		        ['B9',-1,2,1,2,2,2],  ['Bm6',-1,-1,5,5,4,5],  ['Bm7',-1,2,4,2,3,2],  ['BM7',-1,2,4,3,4,-1], 
+		        ['Bo',-1,-1,0,1,0,1], ['B+',-1,-1,5,4,4,3],   ['Bsus',-1,-1,4,4,5,2], 
+	        ]
+        ];     
+        
     this.recalculate(); 
 }
 
@@ -709,7 +775,6 @@ exChord.prototype = {
         base = this.namedChords[this.namedChord]; 
         ln = base.length; 
         this.notes = [];  
-        this.notes.addNew(this.tonic, 0.0); 
         for (i=1; i<ln; i=i+1) {
             this.notes.addNew(this.tonic + base[i], 0.0); 
         }
@@ -734,15 +799,76 @@ exChord.prototype = {
       * @param {string} nm - Name of the chord, from the list this.namedChords. 
       */
     setName: function(nm) {
-        // test nm in this.namedChords?
-        // test is a string/name
-        // test is a roman number notation?
-        // test is a longer name, convert to shorter?
         this.namedChord = nm; 
         this.recalculate();
     },
     
-
+ 
+    getNamedChordSpacings: function(nm) {
+		switch (nm) { 
+			case '-': 	return [0,4,7]; break; 
+			case 'M': 	return [0,4,7]; break;
+			case 'm': 	return [0,3,7]; break; 
+			case '+': 	return [0,4,8]; break; 
+			case 'o': 	return [0,3,6]; break; 
+			case 'M6': 	return [0,4,7,9]; break; 
+			case 'm6': 	return [0,3,7,9]; break; 
+			case '7': 	return [0,4,7,10]; break; 
+			case 'M7': 	return [0,4,7,11]; break; 
+			case 'm7': 	return [0,3,7,10]; break; 
+			case '+7': 	return [0,4,8,10]; break; 
+			case 'o7': 	return [0,3,6,9]; break; 
+			case '0': 	return [0,3,6,10]; break; 
+			case '07': 	return [0,3,6,10]; break; 
+			case 'mM7': return [0,3,7,11]; break; 
+			case '+M7': return [0,4,8,11]; break; 
+			case '7+5': return [0,4,6,10]; break; 
+			case 'I': 	return [0,4,7]; break; 
+			case 'II':	return [2,5,9]; break; 
+			case 'III':	return [4,7,11]; break; 
+			case 'IV':	return [5,9,12]; break; 
+			case 'V':	return [7,11,14]; break; 
+			case 'VI':	return [9,13,17]; break; 
+			case 'VII':	return [11,14,17]; break; 
+			case 'M9': 	return [0,4,7,11,14]; break; 
+			case '9': 	return [0,4,7,10,14]; break; 
+			case 'mM9': return [0,3,7,11,14]; break; 
+			case '-M9': return [0,3,7,11,14]; break; 
+			case 'm9': 	return [0,3,7,10,14]; break; 
+			case '-9': 	return [0,3,7,10,14]; break; 
+			case '+M9': return [0,4,8,11,14]; break; 
+			case '+9': 	return [0,4,8,10,14]; break; 
+			case '09': 	return [0,3,6,10,14]; break; 
+			case '0f9': return [0,3,6,10,13]; break; 
+			case 'o9': 	return [0,3,6,9,14]; break; 
+			case 'of9': return [0,3,6,9,13]; break; 
+			case '11': 	return [0,4,7,10,14,17]; break; 
+			case 'M11': return [0,4,7,11,14,17]; break; 
+			case 'mM11': return [0,3,7,11,14,17]; break; 
+			case '-M11': return [0,3,7,11,14,17]; break; 
+			case 'm11': return [0,3,7,10,14,17]; break; 
+			case '-11': return [0,3,7,10,14,17]; break; 
+			case '+M11': return [0,4,8,11,14,17]; break; 
+			case '+11': return [0,4,8,10,14,17]; break; 
+			case '011': return [0,3,6,10,13,17]; break; 
+			case 'o11': return [0,3,6,9,13,16]; break; 
+			case 'M13': return [0,4,7,11,14,17,21]; break; 
+			case '13': 	return [0,4,7,10,14,17,21]; break; 
+			case 'mM13': return [0,3,7,11,14,17,21]; break; 
+			case '-M13': return [0,3,7,11,14,17,21]; break; 
+			case 'm13': return [0,3,7,11,14,17,21]; break; 
+			case '-13': return [0,3,7,10,14,17,21]; break; 
+			case '+M13': return [0,4,8,11,14,17,21]; break; 
+			case '013': return [0,3,6,10,14,17,21]; break; 
+			case 'I': 	return [0,4,7]; break; 
+			case 'II':	return [2,5,9]; break; 
+			case 'III':	return [4,7,11]; break; 
+			case 'IV':	return [5,9,12]; break; 
+			case 'V':	return [7,11,14]; break; 
+			case 'VI':	return [9,13,17]; break; 
+			case 'VII':	return [11,14,17]; break; 
+		}
+    },
     /**
       * Changes the chord to be built from the tonic.
       * @function
@@ -788,13 +914,18 @@ exChord.prototype = {
     },
 
 
-    // invert, etc. 
+    // inversions: add or subtract 12 from nth note
+    // rolling: make all notes within 12 of a tone
+    roll: function(center) { 
+	},
+    
+    
+    
     // report, test
+	// matching: given a nl, give matching chord
+
 
 }
-
-
-
 ///////////////////////////////////////// tuned hand
 ///////////////////////////////////////// tuned hand
 ///////////////////////////////////////// tuned hand
@@ -845,7 +976,7 @@ exTunedHand.prototype = {
         if (which==2) { this.strings = [48,52,55,60,64,67]; } // open C    c3 e3 g3 c4 e4 g4
         if (which==3) { this.strings = [40,45,50,54,59,64]; } // don't remember! low!
         // the one for el noy, the one for passemezze
-        if (which==10) { this.strings = [67,60,64,69]; } // uke!    g4 c4 e4 a4
+        if (which==10) { this.strings = [67,60,64,69]; } // uke    g4 c4 e4 a4
         if (which==11) { this.strings = [55,62,69,76]; } // violin   g3,d4,a4,e5
         if (which==12) { this.strings = [55,62,69,76]; } // mandolin   as violin
         if (which==13) { this.strings = [67,50,55,59,62]; } // banjo   g4,d3,g3,b3,d4

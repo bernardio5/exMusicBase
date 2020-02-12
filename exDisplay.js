@@ -317,7 +317,6 @@ exSpriteClefRow.prototype = {
     //   in-key, that are on black keys, as though they were on white, with the key signature
     //   showing that they are moved. 
     // 2)  Notes not in the key are represented as a deviation from the closest in-key note.
-    //   There are usually two! 
     // 3) Algorithm: 
     //   a) represent the key to be displayed as a list of the notes in the 0-octave of the key. 
     //         This is an array of 7 integers. Let C0=0 and C1=12; F#=7, call this "scaleIn"
