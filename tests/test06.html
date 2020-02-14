@@ -4,58 +4,61 @@
 	<script type="text/javascript" src="../exMusic.js"></script>  
 	<script type="text/javascript" src="../exDisplay.js"></script>  
 	<script type="text/javascript">		
-	var theList, theSound, theTab, theHand, theLine, theMet; 
+	var theList, theSound, theHand, theMet, theKey, 
+		theClef1, theClef2, theClef3, theClef4, theClef5; 
+	var frameCt = 0; 
 
 	function generate() { 
 		var baseNote, i;
-		
-		baseNote = new exNote(); 		
+		baseNote = new exNote(); 	
+		baseNote.midi = 40;	
 		theList = new exNoteList(); 
-		
-		for (i=0; i<24; i=i+1) {
+		for (i=0; i<80; i=i+1) {
 			baseNote.t = theMet.timeOfNthBeat(i); 
-			baseNote.midi = 48+i; 
-			theHand.setANote(baseNote); 
-			theList.add(baseNote); 
+			var newNote = theKey.copyStep(baseNote, (i*3)%24);
+			theList.add(newNote); 
 		}
-
 	}
 
 
 	function starter() { 
 		theMet = new exMetronome(33, 60, 4, 16); 
 		theHand = new exTunedHand(); 
+		theKey = new exKey(); 
 		generate(); 
 		var theCanvas = document.getElementById("mainCanvas");
 
-		var theKey = new exKey(); 
-		theClef = new exSpriteClefRow(theCanvas, theList, 0,1, 2, theKey, true);
-		theClef.redrawer(); 
+		theClef1 = new exSpriteClefRow(theCanvas, theList, 0,2, 2, theKey, true);
+		theClef1.startTime = theMet.timeOfNthBeat(0); 
+		theClef1.endTime = theMet.timeOfNthBeat(20); 
+		theClef2 = new exSpriteClefRow(theCanvas, theList, 0,12, 2, theKey, true);
+		theClef2.startTime = theMet.timeOfNthBeat(21); 
+		theClef2.endTime = theMet.timeOfNthBeat(40); 
+		theClef3 = new exSpriteClefRow(theCanvas, theList, 0,24, 2, theKey, true);
+		theClef3.startTime = theMet.timeOfNthBeat(41); 
+		theClef3.endTime = theMet.timeOfNthBeat(60); 
+		theClef4 = new exSpriteClefRow(theCanvas, theList, 0,36, 2, theKey, true);
+		theClef4.startTime = theMet.timeOfNthBeat(61); 
+		theClef4.endTime = theMet.timeOfNthBeat(80); 
 
-		theTab = new exSpriteTabRow(theCanvas, theList, 0,9, 2, theHand, true);
-		theClef.redrawer(); 
-
-//          function exSpriteTimeLine(aCanvas, aNoteList, x0,y0, tilesPerSec, aSignature, showClef) {
-		theSound = new exSpriteTimeLine(theCanvas, theList, 0,9, 2, theMet, true);
-		theLine.redrawer(); 
-
-		setInterval(redraw,33);  
+		setInterval(redraw,500);  
 	}
 
 	function redraw() {
-		theMet.update(); 
-
-		theClef.clearAll(); 
-
-		theClef.redrawer(); 
-		theTab.redrawer(); 
-		theLine.redrawer(); 
+		if (frameCt<5) { 
+			theMet.update(); 
+			theClef1.clearAll(); 
+			theClef1.redrawer(); 
+			theClef2.redrawer(); 
+			theClef3.redrawer(); 
+			theClef4.redrawer(); 
+			++frameCt; 
+		}
 	}
-
-	</script>
+</script>
 </head>
 <body  onLoad="starter();">
-	Test 6: Timeline, moving, with tab and clef, aligned. 
-	<canvas id="mainCanvas" width="782" height="320"></canvas> 
+	Test 6: Multiple clef lines
+	<canvas id="mainCanvas" width="782" height="780"></canvas> 
 </body>
 </html>
